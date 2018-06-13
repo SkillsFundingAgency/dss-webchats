@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -12,7 +13,8 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger
     {
         [FunctionName("Post")]
         [ResponseType(typeof(Models.WebChat))]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "Customers/{customerId:guid}/Interactions/{interactionId:guid}/WebChats")]HttpRequestMessage req, TraceWriter log)
+        [Display(Name = "Post", Description = "Ability to create a new webchat resource.")]
+        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")]HttpRequestMessage req, TraceWriter log, string customerId, string interactionId)
         {
             log.Info("Post Web Chat C# HTTP trigger function processed a request.");
 

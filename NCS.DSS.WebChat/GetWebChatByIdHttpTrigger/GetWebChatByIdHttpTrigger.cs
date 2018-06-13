@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
@@ -12,7 +13,8 @@ namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger
     public static class GetWebChatByIdHttpTrigger
     {
         [FunctionName("GetById")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId:guid}/Interactions/{interactionId:guid}/WebChats/{webChatId:guid}")]HttpRequestMessage req, TraceWriter log, string webChatId)
+        [Display(Name = "Get", Description = "Ability to retrieve an individual webchat record.")]
+        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")]HttpRequestMessage req, TraceWriter log, string customerId, string interactionId, string webChatId)
         {
             log.Info("Get Web Chat By Id C# HTTP trigger function  processed a request.");
 

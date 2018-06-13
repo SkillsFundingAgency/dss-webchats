@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
@@ -11,7 +12,8 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger
     public static class GetWebChatHttpTrigger
     {
         [FunctionName("Get")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId:guid}/Interactions/{interactionId:guid}/WebChats")]HttpRequestMessage req, TraceWriter log)
+        [Display(Name = "Get", Description = "Ability to return all webchat records for a given customer.")]
+        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")]HttpRequestMessage req, TraceWriter log, string customerId, string interactionId)
         {
             log.Info("Get Web Chat C# HTTP trigger function processed a request.");
 

@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http;
 using Microsoft.Azure.WebJobs;
@@ -11,7 +12,8 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger
     public static class PatchWebChatHttpTrigger
     {
         [FunctionName("Patch")]
-        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "Customers/{customerId:guid}/Interactions/{interactionId:guid}/WebChats/{webChatId:guid}")]HttpRequestMessage req, TraceWriter log, string webChatId)
+        [Display(Name = "Patch", Description = "Ability to modify/update an webchat record.")]
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")]HttpRequestMessage req, TraceWriter log, string customerId, string interactionId, string webChatId)
         {
             log.Info("Patch Web Chat C# HTTP trigger function processed a request.");
 
