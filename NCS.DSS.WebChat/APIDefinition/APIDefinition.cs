@@ -44,6 +44,7 @@ namespace NCS.DSS.WebChat.APIDefinition
             doc.info.description = APIDescription;
             doc.host = req.RequestUri.Authority;
             doc.basePath = "/";
+
             doc.schemes = new[] { "https" };
             if (doc.host.Contains("127.0.0.1") || doc.host.Contains("localhost"))
             {
@@ -132,6 +133,8 @@ namespace NCS.DSS.WebChat.APIDefinition
                     operation.description = GetFunctionDescription(methodInfo, functionAttr.Name);
 
                     operation.responses = GenerateResponseParameterSignature(methodInfo, doc);
+                    operation.tags = new[] { APITitle };
+
                     dynamic keyQuery = new ExpandoObject();
                     keyQuery.apikeyQuery = new string[0];
                     operation.security = new ExpandoObject[] { keyQuery };

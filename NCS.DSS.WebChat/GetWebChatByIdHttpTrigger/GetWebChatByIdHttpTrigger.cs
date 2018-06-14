@@ -7,12 +7,14 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web.Http.Description;
 
 namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger
 {
     public static class GetWebChatByIdHttpTrigger
     {
         [FunctionName("GetById")]
+        [ResponseType(typeof(Models.WebChat))]
         [Display(Name = "Get", Description = "Ability to retrieve an individual webchat record.")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")]HttpRequestMessage req, TraceWriter log, string customerId, string interactionId, string webChatId)
         {
