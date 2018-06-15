@@ -6,6 +6,7 @@ using System.Web.Http.Description;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using NCS.DSS.WebChat.Annotations;
 
 namespace NCS.DSS.WebChat.PostWebChatHttpTrigger
 {
@@ -13,6 +14,9 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger
     {
         [FunctionName("Post")]
         [ResponseType(typeof(Models.WebChat))]
+        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.Created, Description = "WebChat Created", ShowSchema = true)]
+        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.BadRequest, Description = "Unable to create WebChat", ShowSchema = false)]
+        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Forbidden", ShowSchema = false)]
         [Display(Name = "Post", Description = "Ability to create a new webchat resource.")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")]HttpRequestMessage req, TraceWriter log, string customerId, string interactionId)
         {

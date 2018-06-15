@@ -5,6 +5,7 @@ using System.Net.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using NCS.DSS.WebChat.Annotations;
 using Newtonsoft.Json;
 
 namespace NCS.DSS.WebChat.DeleteWebChatHttpTrigger
@@ -12,6 +13,8 @@ namespace NCS.DSS.WebChat.DeleteWebChatHttpTrigger
     public static class DeleteWebChatHttpTrigger
     {
         [FunctionName("Delete")]
+        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.OK, Description = "WebChat deleted", ShowSchema = true)]
+        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.NotFound, Description = "Supplied WebChat Id does not exist", ShowSchema = false)]
         [Display(Name = "Delete", Description = "Ability to delete an webchat record.")]
         public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")]HttpRequestMessage req, TraceWriter log, string customerId, string interactionId, string webChatId)
         {

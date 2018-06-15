@@ -14,6 +14,7 @@ using System.Web.Http.Description;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using NCS.DSS.WebChat.Annotations;
 
 namespace NCS.DSS.WebChat.APIDefinition
 {
@@ -242,8 +243,20 @@ namespace NCS.DSS.WebChat.APIDefinition
                     }
                 }
             }
-            responseDef.description = "OK";
-            AddToExpando(responses, "200", responseDef);
+            // automatically get data(http code, description and show schema) from the new custom response class
+            var responseCodes = methodInfo.GetCustomAttributes(typeof(WebChatResponse), false);
+
+            foreach (var response in responseCodes)
+            {
+                var webChatResponse = (WebChatResponse)response;
+
+                if (!webChatResponse.ShowSchema)
+                    responseDef = new ExpandoObject();
+
+                responseDef.description = webChatResponse.Description;
+                AddToExpando(responses, webChatResponse.HttpStatusCode.ToString(), responseDef);
+            }
+
             return responses;
         }
 

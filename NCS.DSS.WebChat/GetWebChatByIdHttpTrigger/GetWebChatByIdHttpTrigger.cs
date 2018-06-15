@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http.Description;
+using NCS.DSS.WebChat.Annotations;
 
 namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger
 {
@@ -15,6 +16,8 @@ namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger
     {
         [FunctionName("GetById")]
         [ResponseType(typeof(Models.WebChat))]
+        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.OK, Description = "WebChat found", ShowSchema = true)]
+        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.NotFound, Description = "Supplied WebChat Id does not exist", ShowSchema = false)]
         [Display(Name = "Get", Description = "Ability to retrieve an individual webchat record.")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")]HttpRequestMessage req, TraceWriter log, string customerId, string interactionId, string webChatId)
         {
