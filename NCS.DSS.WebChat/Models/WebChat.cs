@@ -28,6 +28,7 @@ namespace NCS.DSS.WebChat.Models
         public TimeSpan WebChatDuration { get; set; }
 
         [Required]
+        [StringLength(10000)]
         [Display(Description = "Webchat text.")]
         public string WebChatNarrative { get; set; }
 
