@@ -370,8 +370,11 @@ namespace NCS.DSS.WebChat.APIDefinition
                 dynamic propDef = new ExpandoObject();
                 propDef.description = GetPropertyDescription(property);
 
+                var exampleAttribute = (Example)property.GetCustomAttributes(typeof(Example), false).FirstOrDefault();
+                if (exampleAttribute != null)
+                    propDef.example = exampleAttribute.Description;
+                
                 var stringAttribute = (StringLengthAttribute) property.GetCustomAttributes(typeof(StringLengthAttribute), false).FirstOrDefault();
-
                 if (stringAttribute != null)
                 {
                     propDef.maxLength = stringAttribute.MaximumLength;
@@ -379,12 +382,9 @@ namespace NCS.DSS.WebChat.APIDefinition
                 }
 
                 var regexAttribute = (RegularExpressionAttribute) property.GetCustomAttributes(typeof(RegularExpressionAttribute), false).FirstOrDefault();
-
                 if (regexAttribute != null)
-                {
                     propDef.pattern = regexAttribute.Pattern;
-                }
-
+                
                 SetParameterType(property.PropertyType, propDef, definitions);
                 AddToExpando(objDef.properties, property.Name, propDef);
             }
