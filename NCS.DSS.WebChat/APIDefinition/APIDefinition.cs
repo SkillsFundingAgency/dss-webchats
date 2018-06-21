@@ -473,7 +473,7 @@ namespace NCS.DSS.WebChat.APIDefinition
                     if (string.IsNullOrEmpty(description))
                         description = item.ToString();
 
-                    enumValues.Add(description);
+                    enumValues.Add(Convert.ToInt32(item) + " - " + description);
                 }
 
                 opParam.@enum = enumValues.ToArray();
