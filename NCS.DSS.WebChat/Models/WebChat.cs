@@ -19,7 +19,7 @@ namespace NCS.DSS.WebChat.Models
         [Required]
         [DataType(DataType.DateTime)]
         [Display(Description = "Date and time the webchat session was initiated by the customer.")]
-        [Example(Description = "2730af9c-fc34-4c2b-a905-c4b584b0f379")]
+        [Example(Description = "2018-06-20T13:20:00")]
         public DateTime WebChatStartDateandTime { get; set; }
 
         [Required]
