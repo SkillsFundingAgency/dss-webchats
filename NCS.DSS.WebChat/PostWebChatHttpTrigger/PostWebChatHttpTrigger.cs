@@ -14,9 +14,12 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger
     {
         [FunctionName("Post")]
         [ResponseType(typeof(Models.WebChat))]
-        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.Created, Description = "WebChat Created", ShowSchema = true)]
-        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.BadRequest, Description = "Unable to create WebChat", ShowSchema = false)]
-        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Forbidden", ShowSchema = false)]
+        [Response(HttpStatusCode = (int)HttpStatusCode.Created, Description = "WebChat Created", ShowSchema = true)]
+        [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "WebChat does not exist", ShowSchema = false)]
+        [Response(HttpStatusCode = (int)HttpStatusCode.BadRequest, Description = "Request was malformed", ShowSchema = false)]
+        [Response(HttpStatusCode = (int)HttpStatusCode.Unauthorized, Description = "API key is unknown or invalid", ShowSchema = false)]
+        [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
+        [Response(HttpStatusCode = 422, Description = "WebChat validation error(s)", ShowSchema = false)]
         [Display(Name = "Post", Description = "Ability to create a new webchat resource.")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")]HttpRequestMessage req, TraceWriter log, string customerId, string interactionId)
         {

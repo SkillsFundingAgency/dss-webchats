@@ -15,8 +15,12 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger
     {
         [FunctionName("Patch")]
         [ResponseType(typeof(Models.WebChat))]
-        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.OK, Description = "WebChat updated", ShowSchema = true)]
-        [WebChatResponse(HttpStatusCode = (int)HttpStatusCode.NotFound, Description = "Supplied WebChat Id does not exist", ShowSchema = false)]
+        [Response(HttpStatusCode = (int)HttpStatusCode.OK, Description = "WebChat Updated", ShowSchema = true)]
+        [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "WebChat does not exist", ShowSchema = false)]
+        [Response(HttpStatusCode = (int)HttpStatusCode.BadRequest, Description = "Request was malformed", ShowSchema = false)]
+        [Response(HttpStatusCode = (int)HttpStatusCode.Unauthorized, Description = "API key is unknown or invalid", ShowSchema = false)]
+        [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
+        [Response(HttpStatusCode = 422, Description = "WebChat validation error(s)", ShowSchema = false)]
         [Display(Name = "Patch", Description = "Ability to modify/update an webchat record.")]
         public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")]HttpRequestMessage req, TraceWriter log, string customerId, string interactionId, string webChatId)
         {
