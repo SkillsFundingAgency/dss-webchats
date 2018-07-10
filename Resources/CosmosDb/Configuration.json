@@ -1,0 +1,14 @@
+{
+  "Databases": [
+    {
+      "DatabaseName": "webchats",
+      "Collections": [
+        {
+          "CollectionName": "webchats",
+          "OfferThroughput": 1000,
+          "StoredProcedures": []
+        }
+      ]
+    }
+  ]
+}
