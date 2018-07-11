@@ -23,7 +23,7 @@ namespace NCS.DSS.WebChat.Models
 
         [StringLength(100)]
         [Display(Description = "Unique identifier passed from the Digital Service to the webchat session.")]
-        [Example(Description = "9f07834f-9ebc-4809-9fce-c9b3ea8f407f")]
+        [Example(Description = "abc123")]
         public string DigitalReference { get; set; }
 
         [Required]
