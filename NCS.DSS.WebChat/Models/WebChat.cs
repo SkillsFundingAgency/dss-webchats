@@ -21,9 +21,10 @@ namespace NCS.DSS.WebChat.Models
         [Example(Description = "2730af9c-fc34-4c2b-a905-c4b584b0f379")]
         public Guid InteractionId { get; set; }
 
+        [StringLength(100)]
         [Display(Description = "Unique identifier passed from the Digital Service to the webchat session.")]
         [Example(Description = "9f07834f-9ebc-4809-9fce-c9b3ea8f407f")]
-        public Guid DigitalReference { get; set; }
+        public string DigitalReference { get; set; }
 
         [Required]
         [DataType(DataType.DateTime)]
