@@ -1,15 +1,16 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http.Description;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
-using Newtonsoft.Json;
-using System.Net.Http;
-using System.Net;
-using System.Threading.Tasks;
-using System.Web.Http.Description;
 using NCS.DSS.WebChat.Annotations;
+using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
+using Newtonsoft.Json;
 
-namespace NCS.DSS.WebChat.GetWebChatHttpTrigger
+namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
 {
     public static class GetWebChatHttpTrigger
     {

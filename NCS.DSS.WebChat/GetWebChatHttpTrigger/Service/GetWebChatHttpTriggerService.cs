@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NCS.DSS.WebChat.GetWebChatHttpTrigger
+namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Service
 {
-    public class GetWebChatHttpTriggerService
+    public class GetWebChatHttpTriggerService : IGetWebChatHttpTriggerService
     {
         public async Task<List<Models.WebChat>> GetWebChats()
         {

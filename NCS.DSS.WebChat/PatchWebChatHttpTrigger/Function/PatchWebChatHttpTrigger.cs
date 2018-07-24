@@ -9,7 +9,7 @@ using Microsoft.Azure.WebJobs.Host;
 using NCS.DSS.WebChat.Annotations;
 using Newtonsoft.Json;
 
-namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger
+namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
 {
     public static class PatchWebChatHttpTrigger
     {

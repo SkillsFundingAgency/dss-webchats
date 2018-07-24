@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger
+namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Service
 {
-    public class GetWebChatByIdHttpTriggerService
+    public class GetWebChatByIdHttpTriggerService : IGetWebChatByIdHttpTriggerService
     {
         public async Task<Models.WebChat> GetWebChat(Guid webChatId)
         {

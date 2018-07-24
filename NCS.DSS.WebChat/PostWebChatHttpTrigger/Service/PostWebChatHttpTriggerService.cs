@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace NCS.DSS.WebChat.PostWebChatHttpTrigger
+namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Service
 {
-    public class PostWebChatHttpTriggerService
+    public class PostWebChatHttpTriggerService : IPostWebChatHttpTriggerService
     {
         public Guid? Create(Models.WebChat webChat)
         {

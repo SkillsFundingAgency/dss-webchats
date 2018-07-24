@@ -7,8 +7,9 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using NCS.DSS.WebChat.Annotations;
+using NCS.DSS.WebChat.PostWebChatHttpTrigger.Service;
 
-namespace NCS.DSS.WebChat.PostWebChatHttpTrigger
+namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
 {
     public static class PostWebChatHttpTrigger
     {
