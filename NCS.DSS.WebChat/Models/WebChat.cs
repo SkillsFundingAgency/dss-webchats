@@ -23,19 +23,19 @@ namespace NCS.DSS.WebChat.Models
         public Guid? InteractionId { get; set; }
 
         [StringLength(100)]
-        [Display(Description = "Unique identifier passed from the Digital Service to the webchat session.")]
+        [Display(Description = "Unique identifier passed from the Digital Service to the webchat webchat.")]
         [Example(Description = "abc123")]
         public string DigitalReference { get; set; }
 
         [Required]
         [DataType(DataType.DateTime)]
-        [Display(Description = "Date and time the webchat session was initiated by the customer.")]
+        [Display(Description = "Date and time the webchat webchat was initiated by the customer.")]
         [Example(Description = "2018-06-20T13:20:00")]
         public DateTime? WebChatStartDateandTime { get; set; }
 
         [Required]
         [DataType(DataType.DateTime)]
-        [Display(Description = "Date and time the webchat with the session finished or was terminated by the customer.")]
+        [Display(Description = "Date and time the webchat with the webchat finished or was terminated by the customer.")]
         [Example(Description = "2018-06-20T13:45:00")]
         public DateTime? WebChatEndDateandTime { get; set; }
 
