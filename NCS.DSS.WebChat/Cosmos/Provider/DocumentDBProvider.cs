@@ -7,7 +7,6 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using NCS.DSS.WebChat.Cosmos.Client;
 using NCS.DSS.WebChat.Cosmos.Helper;
-using NCS.DSS.WebChat.Models;
 
 namespace NCS.DSS.WebChat.Cosmos.Provider
 {
@@ -48,7 +47,7 @@ namespace NCS.DSS.WebChat.Cosmos.Provider
             return interactionQuery.Where(x => x.Id == interactionId.ToString()).Select(x => x.Id).AsEnumerable().Any();
         }
 
-        public async Task<List<Models.WebChat>> GetWebChatsForCustomerAsync(Guid customerId)
+        public async Task<List<Models.WebChat>> GetWebChatsForCustomerAsync(Guid customerId, Guid interactionId)
         {
             var collectionUri = _documentDbHelper.CreateDocumentCollectionUri();
 
@@ -58,7 +57,8 @@ namespace NCS.DSS.WebChat.Cosmos.Provider
                 return null;
 
             var webchatsQuery = client.CreateDocumentQuery<Models.WebChat>(collectionUri)
-                .Where(so => so.CustomerId == customerId).AsDocumentQuery();
+                .Where(so => so.CustomerId == customerId &&
+                             so.InteractionId == interactionId).AsDocumentQuery();
 
             var webchats = new List<Models.WebChat>();
 
@@ -71,7 +71,7 @@ namespace NCS.DSS.WebChat.Cosmos.Provider
             return webchats.Any() ? webchats : null;
         }
 
-        public async Task<Models.WebChat> GetWebChatForCustomerAsync(Guid customerId, Guid webchatId)
+        public async Task<Models.WebChat> GetWebChatForCustomerAsync(Guid customerId, Guid interactionId, Guid webchatId)
         {
             var collectionUri = _documentDbHelper.CreateDocumentCollectionUri();
 
@@ -79,7 +79,9 @@ namespace NCS.DSS.WebChat.Cosmos.Provider
 
             var webchatForCustomerQuery = client
                 ?.CreateDocumentQuery<Models.WebChat>(collectionUri, new FeedOptions { MaxItemCount = 1 })
-                .Where(x => x.CustomerId == customerId && x.WebChatId == webchatId)
+                .Where(x => x.CustomerId == customerId &&
+                            x.InteractionId == interactionId &&
+                            x.WebChatId == webchatId)
                 .AsDocumentQuery();
 
             if (webchatForCustomerQuery == null)
