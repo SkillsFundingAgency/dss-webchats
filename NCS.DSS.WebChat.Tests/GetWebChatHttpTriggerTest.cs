@@ -42,6 +42,7 @@ namespace NCS.DSS.WebChat.Tests
             _resourceHelper = Substitute.For<IResourceHelper>();
             _getWebChatHttpTriggerService = Substitute.For<IGetWebChatHttpTriggerService>();
             _httpRequestMessageHelper = Substitute.For<IHttpRequestMessageHelper>();
+            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
         }
 
         [Test]
@@ -60,8 +61,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task GetWebChatHttpTrigger_ReturnsStatusCodeBadRequest_WhenCustomerIdIsInvalid()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
-
             // Act
             var result = await RunFunction(InValidId, ValidInteractionId);
 
@@ -73,8 +72,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task GetWebChatHttpTrigger_ReturnsStatusCodeBadRequest_WhenInteractionIdIsInvalid()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
-
             // Act
             var result = await RunFunction(ValidCustomerId, InValidId);
 
@@ -86,7 +83,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task GetWebChatHttpTrigger_ReturnsStatusCodeNoContent_WhenCustomerDoesNotExist()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(false);
 
             // Act
@@ -100,7 +96,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task GetWebChatHttpTrigger_ReturnsStatusCodeNoContent_WhenInteractionDoesNotExist()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(true);
             _resourceHelper.DoesInteractionExist(Arg.Any<Guid>()).Returns(false);
 
@@ -115,7 +110,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task GetWebChatHttpTrigger_ReturnsStatusCodeNoContent_WhenWebChatDoesNotExist()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(true);
             _resourceHelper.DoesInteractionExist(Arg.Any<Guid>()).Returns(true);
 
@@ -132,7 +126,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task GetWebChatHttpTrigger_ReturnsStatusCodeOk_WhenWebChatExists()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(true);
             _resourceHelper.DoesInteractionExist(Arg.Any<Guid>()).Returns(true);
 

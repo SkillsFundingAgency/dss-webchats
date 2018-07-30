@@ -50,6 +50,7 @@ namespace NCS.DSS.WebChat.Tests
             _httpRequestMessageHelper = Substitute.For<IHttpRequestMessageHelper>();
             _validate = Substitute.For<IValidate>();
             _postWebChatHttpTriggerService = Substitute.For<IPostWebChatHttpTriggerService>();
+            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
         }
 
         [Test]
@@ -68,8 +69,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PostWebChatHttpTrigger_ReturnsStatusCodeBadRequest_WhenCustomerIdIsInvalid()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
-
             // Act
             var result = await RunFunction(InValidId, ValidInteractionId);
 
@@ -81,8 +80,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PostWebChatHttpTrigger_ReturnsStatusCodeBadRequest_WhenInteractionIdIsInvalid()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
-
             // Act
             var result = await RunFunction(ValidCustomerId, InValidId);
 
@@ -94,7 +91,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PostWebChatHttpTrigger_ReturnsStatusCodeUnprocessableEntity_WhenWebChatHasFailedValidation()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _httpRequestMessageHelper.GetWebChatFromRequest<Models.WebChat>(_request).Returns(Task.FromResult(_webChat).Result);
 
             var validationResults = new List<ValidationResult> { new ValidationResult("interaction Id is Required") };
@@ -110,7 +106,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PostWebChatHttpTrigger_ReturnsStatusCodeUnprocessableEntity_WhenWebChatRequestIsInvalid()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _httpRequestMessageHelper.GetWebChatFromRequest<Models.WebChat>(_request).Throws(new JsonException());
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId);
@@ -123,7 +118,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PostWebChatHttpTrigger_ReturnsStatusCodeNoContent_WhenCustomerDoesNotExist()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _httpRequestMessageHelper.GetWebChatFromRequest<Models.WebChat>(_request).Returns(Task.FromResult(_webChat).Result);
 
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(false);
@@ -138,7 +132,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PostWebChatHttpTrigger_ReturnsStatusCodeNoContent_WhenInteractionDoesNotExist()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _httpRequestMessageHelper.GetWebChatFromRequest<Models.WebChat>(_request).Returns(Task.FromResult(_webChat).Result);
 
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(true);
@@ -154,7 +147,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PostWebChatHttpTrigger_ReturnsStatusCodeBadRequest_WhenUnableToCreateWebChatRecord()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _httpRequestMessageHelper.GetWebChatFromRequest<Models.WebChat>(_request).Returns(Task.FromResult(_webChat).Result);
 
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(true);
@@ -172,7 +164,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PostWebChatHttpTrigger_ReturnsStatusCodeCreated_WhenRequestIsNotValid()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _httpRequestMessageHelper.GetWebChatFromRequest<Models.WebChat>(_request).Returns(Task.FromResult(_webChat).Result);
 
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(true);
@@ -190,7 +181,6 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PostWebChatHttpTrigger_ReturnsStatusCodeCreated_WhenRequestIsValid()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns(new Guid());
             _httpRequestMessageHelper.GetWebChatFromRequest<Models.WebChat>(_request).Returns(Task.FromResult(_webChat).Result);
 
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(true);

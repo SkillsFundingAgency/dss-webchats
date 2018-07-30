@@ -34,11 +34,11 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
             var touchpointId = httpRequestMessageHelper.GetTouchpointId(req);
             if (touchpointId == null)
             {
-                log.LogInformation("Unable to locate 'APIM-TouchpointId' in request header");
+                log.LogInformation("Unable to locate 'APIM-TouchpointId' in request header.");
                 return HttpResponseMessageHelper.BadRequest();
             }
 
-            log.LogInformation("Get Web Chat C# HTTP trigger function processed a request. By Touchpoint " + touchpointId);
+            log.LogInformation("Get Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
                 return HttpResponseMessageHelper.BadRequest(customerGuid);
