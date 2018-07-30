@@ -4,7 +4,7 @@ using NCS.DSS.WebChat.Annotations;
 
 namespace NCS.DSS.WebChat.Models
 {
-    public class WebChat
+    public class WebChat : IWebChat
     {
         [Display(Description = "Unique identifier of the web chat record.")]
         [Example(Description = "b8592ff8-af97-49ad-9fb2-e5c3c717fd85")]
@@ -66,6 +66,17 @@ namespace NCS.DSS.WebChat.Models
         [Display(Description = "Identifier of the touchpoint who made the last change to the record")]
         [Example(Description = "d1307d77-af23-4cb4-b600-a60e04f8c3df")]
         public Guid? LastModifiedTouchpointId { get; set; }
+
+        public void SetDefaultValues()
+        {
+            WebChatId = Guid.NewGuid();
+
+            if (!LastModifiedDate.HasValue)
+                LastModifiedDate = DateTime.UtcNow;
+
+            if (WebChatStartDateandTime.HasValue && WebChatEndDateandTime.HasValue)
+                WebChatDuration = WebChatEndDateandTime.Value.Subtract(WebChatStartDateandTime.Value);
+        }
 
         public void Patch(WebChatPatch webChatPatch)
         {

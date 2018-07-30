@@ -12,11 +12,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Service
             if (webChat == null)
                 return null;
 
-            var webChatId = Guid.NewGuid();
-            webChat.WebChatId = webChatId;
-
-            if (!webChat.LastModifiedDate.HasValue)
-                webChat.LastModifiedDate = DateTime.Now;
+           webChat.SetDefaultValues();
 
             var documentDbProvider = new DocumentDBProvider();
 

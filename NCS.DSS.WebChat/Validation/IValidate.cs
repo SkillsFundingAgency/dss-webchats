@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using NCS.DSS.WebChat.Models;
 
 namespace NCS.DSS.WebChat.Validation
 {
     public interface IValidate
     {
-        List<ValidationResult> ValidateResource<T>(T resource);
+        List<ValidationResult> ValidateResource(IWebChat resource);
     }
 }

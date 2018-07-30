@@ -13,9 +13,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service
             if (webChat == null)
                 return null;
 
-            if (!webChatPatch.LastModifiedDate.HasValue)
-                webChatPatch.LastModifiedDate = DateTime.Now;
-
+            webChatPatch.SetDefaultValues();
             webChat.Patch(webChatPatch);
 
             var documentDbProvider = new DocumentDBProvider();
