@@ -69,7 +69,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
 
             webChatPatchRequest.LastModifiedTouchpointId = touchpointId;
 
-            var errors = validate.ValidateResource(webChatPatchRequest);
+            var errors = validate.ValidateResource(webChatPatchRequest, false);
 
             if (errors != null && errors.Any())
                 return HttpResponseMessageHelper.UnprocessableEntity(errors);

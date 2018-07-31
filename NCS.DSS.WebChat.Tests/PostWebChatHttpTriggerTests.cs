@@ -94,7 +94,7 @@ namespace NCS.DSS.WebChat.Tests
             _httpRequestMessageHelper.GetWebChatFromRequest<Models.WebChat>(_request).Returns(Task.FromResult(_webChat).Result);
 
             var validationResults = new List<ValidationResult> { new ValidationResult("interaction Id is Required") };
-            _validate.ValidateResource(Arg.Any<Models.WebChat>()).Returns(validationResults);
+            _validate.ValidateResource(Arg.Any<Models.WebChat>(), true).Returns(validationResults);
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId);
 
