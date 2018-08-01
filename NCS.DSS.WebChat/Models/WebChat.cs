@@ -22,7 +22,7 @@ namespace NCS.DSS.WebChat.Models
         public Guid? InteractionId { get; set; }
 
         [StringLength(100)]
-        [Display(Description = "Unique identifier passed from the Digital Service to the webchat webchat.")]
+        [Display(Description = "Unique identifier passed from the Digital Service to the webchat session.")]
         [Example(Description = "abc123")]
         public string DigitalReference { get; set; }
 
