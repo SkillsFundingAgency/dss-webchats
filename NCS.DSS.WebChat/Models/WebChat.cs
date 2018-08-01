@@ -17,19 +17,9 @@ namespace NCS.DSS.WebChat.Models
         public Guid? CustomerId { get; set; }
 
         [Required]
-        [Display(Description = "Unique identifier of a customer.")]
-        [Example(Description = "2730af9c-fc34-4c2b-a905-c4b584b0f379")]
-        public Guid CustomerId { get; set; }
-
-        [Required]
         [Display(Description = "Unique identifier of the customer interaction record.")]
         [Example(Description = "2730af9c-fc34-4c2b-a905-c4b584b0f379")]
         public Guid? InteractionId { get; set; }
-
-        [StringLength(100)]
-        [Display(Description = "Unique identifier passed from the Digital Service to the webchat webchat.")]
-        [Example(Description = "abc123")]
-        public string DigitalReference { get; set; }
 
         [StringLength(100)]
         [Display(Description = "Unique identifier passed from the Digital Service to the webchat session.")]
