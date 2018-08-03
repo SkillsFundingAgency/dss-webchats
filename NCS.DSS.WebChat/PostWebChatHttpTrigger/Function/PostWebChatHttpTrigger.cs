@@ -86,7 +86,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
 
             return webChat == null
                 ? HttpResponseMessageHelper.BadRequest(customerGuid)
-                : HttpResponseMessageHelper.Created(webChat);
+                : HttpResponseMessageHelper.Created(JsonHelper.SerializeObject(webChat));
         }
     }
 }
