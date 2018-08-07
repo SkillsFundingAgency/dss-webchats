@@ -12,7 +12,7 @@ namespace NCS.DSS.WebChat.Models
         bool? SentToCustomer { get; set; }
         DateTime? DateandTimeSentToCustomers { get; set; }
         DateTime? LastModifiedDate { get; set; }
-        Guid? LastModifiedTouchpointId { get; set; }
+        string LastModifiedTouchpointId { get; set; }
 
         void SetDefaultValues();
     }
