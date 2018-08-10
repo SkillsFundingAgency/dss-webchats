@@ -11,12 +11,10 @@ namespace NCS.DSS.WebChat.Models
         [Newtonsoft.Json.JsonProperty(PropertyName = "id")]
         public Guid? WebChatId { get; set; }
 
-        [Required]
         [Display(Description = "Unique identifier of a customer.")]
         [Example(Description = "2730af9c-fc34-4c2b-a905-c4b584b0f379")]
         public Guid? CustomerId { get; set; }
 
-        [Required]
         [Display(Description = "Unique identifier of the customer interaction record.")]
         [Example(Description = "2730af9c-fc34-4c2b-a905-c4b584b0f379")]
         public Guid? InteractionId { get; set; }
@@ -63,19 +61,26 @@ namespace NCS.DSS.WebChat.Models
         [Example(Description = "2018-06-20T13:45:00")]
         public DateTime? LastModifiedDate { get; set; }
 
+        [StringLength(10, MinimumLength = 10)]
         [Display(Description = "Identifier of the touchpoint who made the last change to the record")]
-        [Example(Description = "d1307d77-af23-4cb4-b600-a60e04f8c3df")]
+        [Example(Description = "0000000001")]
         public string LastModifiedTouchpointId { get; set; }
 
         public void SetDefaultValues()
         {
-            WebChatId = Guid.NewGuid();
-
             if (!LastModifiedDate.HasValue)
                 LastModifiedDate = DateTime.UtcNow;
 
             if (WebChatStartDateandTime.HasValue && WebChatEndDateandTime.HasValue)
                 WebChatDuration = WebChatEndDateandTime.Value.Subtract(WebChatStartDateandTime.Value);
+        }
+
+        public void SetIds(Guid customerId, Guid interactionId, string touchpointId)
+        {
+            WebChatId = Guid.NewGuid();
+            CustomerId = customerId;
+            InteractionId = interactionId;
+            LastModifiedTouchpointId = touchpointId;
         }
 
         public void Patch(WebChatPatch webChatPatch)
