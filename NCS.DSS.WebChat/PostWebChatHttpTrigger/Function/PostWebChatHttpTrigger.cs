@@ -84,6 +84,9 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
 
             var webChat = await webChatPostService.CreateAsync(webChatRequest);
 
+            if (webChat != null)
+                await webChatPostService.SendToServiceBusQueueAsync(webChat, req.RequestUri.AbsoluteUri);
+
             return webChat == null
                 ? HttpResponseMessageHelper.BadRequest(customerGuid)
                 : HttpResponseMessageHelper.Created(JsonHelper.SerializeObject(webChat));

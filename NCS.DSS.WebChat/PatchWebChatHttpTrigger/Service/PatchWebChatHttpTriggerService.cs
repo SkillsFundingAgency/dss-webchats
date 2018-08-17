@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using NCS.DSS.WebChat.Cosmos.Provider;
 using NCS.DSS.WebChat.Models;
+using NCS.DSS.WebChat.ServiceBus;
 
 namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service
 {
@@ -30,6 +31,11 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service
             var webChat = await documentDbProvider.GetWebChatForCustomerAsync(customerId, interactionId, webChatId);
 
             return webChat;
+        }
+
+        public async Task SendToServiceBusQueueAsync(Models.WebChat webChat, Guid customerId, string reqUrl)
+        {
+            await ServiceBusClient.SendPatchMessageAsync(webChat, customerId, reqUrl);
         }
     }
 }
