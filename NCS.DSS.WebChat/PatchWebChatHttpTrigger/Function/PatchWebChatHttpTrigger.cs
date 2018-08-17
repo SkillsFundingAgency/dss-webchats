@@ -91,6 +91,9 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             
             var updatedWebChat = await webChatPatchService.UpdateAsync(webChat, webChatPatchRequest);
 
+            if (updatedWebChat != null)
+                await webChatPatchService.SendToServiceBusQueueAsync(updatedWebChat, customerGuid, req.RequestUri.AbsoluteUri);
+
             return updatedWebChat == null ?
                 HttpResponseMessageHelper.BadRequest(webChatGuid) :
                 HttpResponseMessageHelper.Ok(JsonHelper.SerializeObject(updatedWebChat));

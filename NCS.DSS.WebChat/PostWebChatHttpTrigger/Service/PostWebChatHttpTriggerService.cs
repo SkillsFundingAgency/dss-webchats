@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using NCS.DSS.WebChat.Cosmos.Provider;
+using NCS.DSS.WebChat.ServiceBus;
 
 namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Service
 {
@@ -19,6 +20,11 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Service
             var response = await documentDbProvider.CreateWebChatAsync(webChat);
 
             return response.StatusCode == HttpStatusCode.Created ? (dynamic)response.Resource : null;
+        }
+
+        public async Task SendToServiceBusQueueAsync(Models.WebChat webChat, string reqUrl)
+        {
+            await ServiceBusClient.SendPostMessageAsync(webChat, reqUrl);
         }
     }
 }
