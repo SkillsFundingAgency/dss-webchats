@@ -31,7 +31,7 @@ namespace NCS.DSS.WebChat.ServiceBus
                 IsNewCustomer = false
             };
 
-            var msg = new BrokeredMessage(messageModel)
+            var msg = new BrokeredMessage(new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageModel))))
             {
                 ContentType = "application/json",
                 MessageId = webChat.CustomerId + " " + DateTime.UtcNow
@@ -74,6 +74,7 @@ namespace NCS.DSS.WebChat.ServiceBus
         public DateTime? LastModifiedDate { get; set; }
         public string URL { get; set; }
         public bool IsNewCustomer { get; set; }
+        public string TouchpointId { get; set; }
     }
 
 }
