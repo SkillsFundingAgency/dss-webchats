@@ -9,6 +9,7 @@ namespace NCS.DSS.WebChat.Cosmos.Provider
     public interface IDocumentDBProvider
     {
         bool DoesCustomerResourceExist(Guid customerId);
+        Task<bool> DoesCustomerHaveATerminationDate(Guid customerId);
         bool DoesInteractionResourceExist(Guid interactionId);
         Task<List<Models.WebChat>> GetWebChatsForCustomerAsync(Guid customerId, Guid interactionId);
         Task<Models.WebChat> GetWebChatForCustomerAsync(Guid customerId, Guid interactionId, Guid webchatId);
