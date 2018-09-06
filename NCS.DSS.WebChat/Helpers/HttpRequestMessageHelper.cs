@@ -31,5 +31,19 @@ namespace NCS.DSS.WebChat.Helpers
 
             return string.IsNullOrEmpty(touchpointId) ? string.Empty : touchpointId;
         }
+
+        public string GetApimURL(HttpRequestMessage req)
+        {
+            if (req?.Headers == null)
+                return null;
+
+            if (!req.Headers.Contains("apimurl"))
+                return null;
+
+            var ApimURL = req.Headers.GetValues("apimurl").FirstOrDefault();
+
+            return string.IsNullOrEmpty(ApimURL) ? string.Empty : ApimURL;
+        }
+
     }
 }

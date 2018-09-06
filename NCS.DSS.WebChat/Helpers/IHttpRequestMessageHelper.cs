@@ -8,5 +8,6 @@ namespace NCS.DSS.WebChat.Helpers
     {
         Task<T> GetWebChatFromRequest<T>(HttpRequestMessage req);
         string GetTouchpointId(HttpRequestMessage req);
+        string GetApimURL(HttpRequestMessage req);
     }
 }

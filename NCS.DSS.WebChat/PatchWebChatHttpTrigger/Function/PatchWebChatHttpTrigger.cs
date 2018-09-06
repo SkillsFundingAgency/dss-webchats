@@ -42,6 +42,13 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
                 return HttpResponseMessageHelper.BadRequest();
             }
 
+            var ApimURL = httpRequestMessageHelper.GetApimURL(req);
+            if (string.IsNullOrEmpty(ApimURL))
+            {
+                log.LogInformation("Unable to locate 'apimurl' in request header");
+                return HttpResponseMessageHelper.BadRequest();
+            }
+
             log.LogInformation("Patch Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
@@ -92,7 +99,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             var updatedWebChat = await webChatPatchService.UpdateAsync(webChat, webChatPatchRequest);
 
             if (updatedWebChat != null)
-                await webChatPatchService.SendToServiceBusQueueAsync(updatedWebChat, customerGuid, req.RequestUri.AbsoluteUri);
+                await webChatPatchService.SendToServiceBusQueueAsync(updatedWebChat, customerGuid, ApimURL);
 
             return updatedWebChat == null ?
                 HttpResponseMessageHelper.BadRequest(webChatGuid) :
