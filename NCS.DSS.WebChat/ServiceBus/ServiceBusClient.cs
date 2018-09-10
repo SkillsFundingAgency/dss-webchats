@@ -27,7 +27,7 @@ namespace NCS.DSS.WebChat.ServiceBus
                 TitleMessage = "New WebChat record {" + webChat.WebChatId + "} added at " + DateTime.UtcNow,
                 CustomerGuid = webChat.CustomerId,
                 LastModifiedDate = webChat.LastModifiedDate,
-                URL = reqUrl,
+                URL = reqUrl + webChat.WebChatId,
                 IsNewCustomer = false
             };
 
