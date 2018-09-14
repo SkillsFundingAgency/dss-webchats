@@ -28,7 +28,8 @@ namespace NCS.DSS.WebChat.ServiceBus
                 CustomerGuid = webChat.CustomerId,
                 LastModifiedDate = webChat.LastModifiedDate,
                 URL = reqUrl + "/" + webChat.WebChatId,
-                IsNewCustomer = false
+                IsNewCustomer = false,
+                TouchpointId = webChat.LastModifiedTouchpointId
             };
 
             var msg = new BrokeredMessage(new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageModel))))
@@ -52,8 +53,9 @@ namespace NCS.DSS.WebChat.ServiceBus
                 CustomerGuid = customerId,
                 LastModifiedDate = webChat.LastModifiedDate,
                 URL = reqUrl,
-                IsNewCustomer = false
-                
+                IsNewCustomer = false,
+                TouchpointId = webChat.LastModifiedTouchpointId
+
             };
 
             var msg = new BrokeredMessage(new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageModel))))
