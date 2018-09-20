@@ -55,6 +55,7 @@ namespace NCS.DSS.WebChat.Tests
             _httpRequestMessageHelper = Substitute.For<IHttpRequestMessageHelper>();
             _patchWebChatHttpTriggerService = Substitute.For<IPatchWebChatHttpTriggerService>();
             _httpRequestMessageHelper.GetTouchpointId(_request).Returns("0000000001");
+            _httpRequestMessageHelper.GetApimURL(_request).Returns("http://localhost:7071/");
         }
 
         [Test]

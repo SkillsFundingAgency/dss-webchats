@@ -48,12 +48,12 @@ namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Function
             if (!Guid.TryParse(webChatId, out var webChatGuid))
                 return HttpResponseMessageHelper.BadRequest(webChatGuid);
 
-            var doesCustomerExist = resourceHelper.DoesCustomerExist(customerGuid);
+            var doesCustomerExist = await resourceHelper.DoesCustomerExist(customerGuid);
 
             if (!doesCustomerExist)
                 return HttpResponseMessageHelper.NoContent(customerGuid);
 
-            var doesInteractionExist = resourceHelper.DoesInteractionExist(interactionGuid);
+            var doesInteractionExist = await resourceHelper.DoesInteractionExist(interactionGuid);
 
             if (!doesInteractionExist)
                 return HttpResponseMessageHelper.NoContent(interactionGuid);
