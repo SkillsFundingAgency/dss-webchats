@@ -97,7 +97,7 @@ namespace NCS.DSS.WebChat.Tests
         public async Task GetWebChatHttpTrigger_ReturnsStatusCodeNoContent_WhenInteractionDoesNotExist()
         {
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(true);
-            _resourceHelper.DoesInteractionExist(Arg.Any<Guid>()).Returns(false);
+            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(false);
 
             // Act
             var result = await RunFunction(ValidCustomerId, ValidInteractionId);
@@ -111,7 +111,7 @@ namespace NCS.DSS.WebChat.Tests
         public async Task GetWebChatHttpTrigger_ReturnsStatusCodeNoContent_WhenWebChatDoesNotExist()
         {
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(true);
-            _resourceHelper.DoesInteractionExist(Arg.Any<Guid>()).Returns(true);
+            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
 
             _getWebChatHttpTriggerService.GetWebChatsForCustomerAsync(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(Task.FromResult<List<Models.WebChat>>(null).Result);
 
@@ -127,7 +127,7 @@ namespace NCS.DSS.WebChat.Tests
         public async Task GetWebChatHttpTrigger_ReturnsStatusCodeOk_WhenWebChatExists()
         {
             _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(true);
-            _resourceHelper.DoesInteractionExist(Arg.Any<Guid>()).Returns(true);
+            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
 
             var listOfWebChates = new List<Models.WebChat>();
             _getWebChatHttpTriggerService.GetWebChatsForCustomerAsync(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(Task.FromResult<List<Models.WebChat>>(listOfWebChates).Result);
