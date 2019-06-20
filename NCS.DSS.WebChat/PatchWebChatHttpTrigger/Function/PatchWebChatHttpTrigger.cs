@@ -12,6 +12,7 @@ using NCS.DSS.WebChat.Annotations;
 using NCS.DSS.WebChat.Cosmos.Helper;
 using NCS.DSS.WebChat.Helpers;
 using NCS.DSS.WebChat.Ioc;
+using NCS.DSS.WebChat.Models;
 using NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
 using Newtonsoft.Json;
@@ -60,7 +61,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             if (!Guid.TryParse(webChatId, out var webChatGuid))
                 return HttpResponseMessageHelper.BadRequest(webChatGuid);
 
-            Models.WebChatPatch webChatPatchRequest;
+            WebChatPatch webChatPatchRequest;
 
             try
             {
@@ -100,7 +101,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
 
             if (webChat == null)
                 return HttpResponseMessageHelper.NoContent(webChatGuid);
-            
+
             var updatedWebChat = await webChatPatchService.UpdateAsync(webChat, webChatPatchRequest);
 
             if (updatedWebChat != null)

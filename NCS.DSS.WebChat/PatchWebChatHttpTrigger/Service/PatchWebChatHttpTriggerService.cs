@@ -14,7 +14,9 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service
             if (webChat == null)
                 return null;
 
-            webChatPatch.SetDefaultValues();
+            webChatPatch.UpdateDuration(webChat, webChatPatch);
+            webChatPatch.UpdateLastModifiedDate(webChatPatch);
+
             webChat.Patch(webChatPatch);
 
             var documentDbProvider = new DocumentDBProvider();
