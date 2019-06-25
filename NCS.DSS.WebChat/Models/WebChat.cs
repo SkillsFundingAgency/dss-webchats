@@ -68,8 +68,7 @@ namespace NCS.DSS.WebChat.Models
 
         public void SetDefaultValues()
         {
-            if (!LastModifiedDate.HasValue)
-                LastModifiedDate = DateTime.UtcNow;
+            LastModifiedDate = DateTime.UtcNow;
 
             if (WebChatStartDateandTime.HasValue && WebChatEndDateandTime.HasValue)
                 WebChatDuration = WebChatEndDateandTime.Value.Subtract(WebChatStartDateandTime.Value);
