@@ -15,7 +15,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service
                 return null;
 
             webChat.Patch(webChatPatch);
-            webChatPatch.SetDefaultValues();
+            webChat.SetDefaultValues();
 
             var documentDbProvider = new DocumentDBProvider();
             var response = await documentDbProvider.UpdateWebChatAsync(webChat);

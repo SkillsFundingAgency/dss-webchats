@@ -58,37 +58,5 @@ namespace NCS.DSS.WebChat.Models
             if (WebChatStartDateandTime.HasValue && WebChatEndDateandTime.HasValue)
                 WebChatDuration = WebChatEndDateandTime.Value.Subtract(WebChatStartDateandTime.Value);
         }
-
-        public void UpdateLastModifiedDate(WebChatPatch webChatPatch)
-        {
-            if (!webChatPatch.LastModifiedDate.HasValue)
-                webChatPatch.LastModifiedDate = DateTime.UtcNow;
-        }
-
-        public void UpdateDuration(WebChat webChat, WebChatPatch webChatPatch)
-        {
-            if (webChatPatch.WebChatStartDateandTime.HasValue && webChatPatch.WebChatEndDateandTime.HasValue)
-            {
-                webChatPatch.WebChatDuration = webChatPatch.WebChatEndDateandTime.Value.Subtract(webChatPatch.WebChatStartDateandTime.Value);
-                return;
-            }
-
-            if (!webChatPatch.WebChatStartDateandTime.HasValue && webChatPatch.WebChatEndDateandTime.HasValue)
-            {
-                if (webChat.WebChatStartDateandTime.HasValue)
-                {
-                    webChatPatch.WebChatDuration = webChatPatch.WebChatEndDateandTime.Value.Subtract(webChat.WebChatStartDateandTime.Value);
-                    return;
-                }
-            }
-
-            if (webChatPatch.WebChatStartDateandTime.HasValue && !webChatPatch.WebChatEndDateandTime.HasValue)
-            {
-                if (webChat.WebChatEndDateandTime.HasValue)
-                {
-                    webChatPatch.WebChatDuration = webChat.WebChatEndDateandTime.Value.Subtract(webChatPatch.WebChatStartDateandTime.Value);
-                }
-            }
-        }
     }
 }
