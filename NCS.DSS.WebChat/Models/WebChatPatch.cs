@@ -57,7 +57,6 @@ namespace NCS.DSS.WebChat.Models
 
             if (WebChatStartDateandTime.HasValue && WebChatEndDateandTime.HasValue)
                 WebChatDuration = WebChatEndDateandTime.Value.Subtract(WebChatStartDateandTime.Value);
-
         }
     }
 }
