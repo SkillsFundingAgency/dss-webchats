@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DFC.Common.Standard" Version="0.1.4" />
+    <PackageReference Include="DFC.JSON.Standard" Version="0.1.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="Moq" Version="4.14.1" />
     <PackageReference Include="NUnit" Version="3.12.0" />

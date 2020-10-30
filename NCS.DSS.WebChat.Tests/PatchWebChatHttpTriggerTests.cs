@@ -4,15 +4,16 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using DFC.HTTP.Standard;
+using DFC.JSON.Standard;
+using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Logging;
+using Moq;
 using NCS.DSS.WebChat.Cosmos.Helper;
-using NCS.DSS.WebChat.Helpers;
 using NCS.DSS.WebChat.Models;
 using NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
 using Newtonsoft.Json;
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 
 namespace NCS.DSS.WebChat.Tests
@@ -24,44 +25,40 @@ namespace NCS.DSS.WebChat.Tests
         private const string ValidInteractionId = "1e1a555c-9633-4e12-ab28-09ed60d51cb3";
         private const string ValidWebChatId = "d5369b9a-6959-4bd3-92fc-1583e72b7e51";
         private const string InValidId = "1111111-2222-3333-4444-555555555555";
-        private ILogger _log;
-        private HttpRequestMessage _request;
-        private IResourceHelper _resourceHelper;
-        private IValidate _validate;
-        private IHttpRequestMessageHelper _httpRequestMessageHelper;
-        private IPatchWebChatHttpTriggerService _patchWebChatHttpTriggerService;
         private Models.WebChat _webChat;
         private WebChatPatch _webChatPatch;
+        private Mock<ILogger> _log;
+        private DefaultHttpRequest _request;
+        private Mock<IResourceHelper> _resourceHelper;
+        private Mock<IHttpRequestHelper> _httpRequestMessageHelper;
+        private Mock<IPatchWebChatHttpTriggerService> _patchWebChatHttpTriggerService;
+        private PatchWebChatHttpTrigger.Function.PatchWebChatHttpTrigger function;
+        private IHttpResponseMessageHelper _httpResponseMessageHelper;
+        private IJsonHelper _jsonHelper;
+        private IValidate _validate;
 
         [SetUp]
         public void Setup()
         {
-            _webChat = Substitute.For<Models.WebChat>();
-            _webChatPatch = Substitute.For<WebChatPatch>();
+            _webChat = new Models.WebChat();
+            _validate = new Validate();
+            _request = null;
+            _log = new Mock<ILogger>();
+            _resourceHelper = new Mock<IResourceHelper>();
+            _patchWebChatHttpTriggerService = new Mock<IPatchWebChatHttpTriggerService>();
+            _httpRequestMessageHelper = new Mock<IHttpRequestHelper>();
+            _httpResponseMessageHelper = new HttpResponseMessageHelper();
+            _jsonHelper = new JsonHelper();
 
-            _request = new HttpRequestMessage()
-            {
-                Content = new StringContent(string.Empty),
-                RequestUri = 
-                    new Uri($"http://localhost:7071/api/Customers/7E467BDB-213F-407A-B86A-1954053D3C24/" +
-                            $"Customers/7E467BDB-213F-407A-B86A-1954053D3C24/" +
-                            $"Interactions/1e1a555c-9633-4e12-ab28-09ed60d51cb3/" +
-                            $"WebChats/1e1a555c-9633-4e12-ab28-09ed60d51cb3")
-            };
-
-            _log = Substitute.For<ILogger>();
-            _resourceHelper = Substitute.For<IResourceHelper>();
-            _validate = Substitute.For<IValidate>();
-            _httpRequestMessageHelper = Substitute.For<IHttpRequestMessageHelper>();
-            _patchWebChatHttpTriggerService = Substitute.For<IPatchWebChatHttpTriggerService>();
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns("0000000001");
-            _httpRequestMessageHelper.GetApimURL(_request).Returns("http://localhost:7071/");
+            function = new PatchWebChatHttpTrigger.Function.PatchWebChatHttpTrigger(_resourceHelper.Object,
+                _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, _validate, _patchWebChatHttpTriggerService.Object);
         }
 
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeBadRequest_WhenTouchpointIdIsNotProvided()
         {
-            _httpRequestMessageHelper.GetTouchpointId(_request).Returns((string)null);
+            // Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns<string>(null);
 
             // Act
             var result = await RunFunction(InValidId, ValidInteractionId, ValidWebChatId);
@@ -107,10 +104,15 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeUnprocessableEntity_WhenWebChatHasFailedValidation()
         {
-            _httpRequestMessageHelper.GetWebChatFromRequest<WebChatPatch>(_request).Returns(Task.FromResult(_webChatPatch).Result);
-
+            // Arrange
+            var validate = new Mock<IValidate>();
             var validationResults = new List<ValidationResult> { new ValidationResult("interaction Id is Required") };
-            _validate.ValidateResource(Arg.Any<WebChatPatch>(), false).Returns(validationResults);
+            validate.Setup(x => x.ValidateResource(It.IsAny<Models.WebChatPatch>(),false)).Returns(validationResults);
+            function = new PatchWebChatHttpTrigger.Function.PatchWebChatHttpTrigger(_resourceHelper.Object, _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, validate.Object, _patchWebChatHttpTriggerService.Object);
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
+            _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
@@ -122,7 +124,10 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeUnprocessableEntity_WhenWebChatRequestIsInvalid()
         {
-            _httpRequestMessageHelper.GetWebChatFromRequest<WebChatPatch>(_request).Throws(new JsonException());
+            // Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
+            _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Throws(new JsonException());
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
@@ -134,10 +139,13 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeNoContent_WhenCustomerDoesNotExist()
         {
-            _httpRequestMessageHelper.GetWebChatFromRequest<WebChatPatch>(_request).Returns(Task.FromResult(_webChatPatch).Result);
+            //Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
+            _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(false));
 
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(false);
-
+            //Act
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
             // Assert
@@ -148,10 +156,13 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeNoContent_WhenInteractionDoesNotExist()
         {
-            _httpRequestMessageHelper.GetWebChatFromRequest<WebChatPatch>(_request).Returns(Task.FromResult(_webChatPatch).Result);
-
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(true);
-            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(false);
+            // Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
+            _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(false);
+            _patchWebChatHttpTriggerService.Setup(x => x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(null));
 
             // Act
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
@@ -164,11 +175,12 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeNoContent_WhenWebChatDoesNotExist()
         {
-            _httpRequestMessageHelper.GetWebChatFromRequest<WebChatPatch>(_request).Returns(Task.FromResult(_webChatPatch).Result);
-
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(true);
-
-            _patchWebChatHttpTriggerService.GetWebChatForCustomerAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(Task.FromResult<Models.WebChat>(null).Result);
+            // Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
+            _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _patchWebChatHttpTriggerService.Setup(x => x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(null));
 
             // Act
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
@@ -181,12 +193,12 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeOk_WhenWebChatDoesNotExist()
         {
-            _httpRequestMessageHelper.GetWebChatFromRequest<WebChatPatch>(_request).Returns(Task.FromResult(_webChatPatch).Result);
-
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(true);
-            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
-
-            _patchWebChatHttpTriggerService.GetWebChatForCustomerAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(Task.FromResult<Models.WebChat>(null).Result);
+            // Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
+            _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _patchWebChatHttpTriggerService.Setup(x => x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(null));
 
             // Act
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
@@ -199,14 +211,14 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeBadRequest_WhenUnableToUpdateWebChatRecord()
         {
-            _httpRequestMessageHelper.GetWebChatFromRequest<WebChatPatch>(_request).Returns(Task.FromResult(_webChatPatch).Result);
-
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(true);
-            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
-
-            _patchWebChatHttpTriggerService.GetWebChatForCustomerAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(Task.FromResult(_webChat).Result);
-
-            _patchWebChatHttpTriggerService.UpdateAsync(Arg.Any<Models.WebChat>(), Arg.Any<WebChatPatch>()).Returns(Task.FromResult<Models.WebChat>(null).Result);
+            // Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
+            _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(true);
+            _patchWebChatHttpTriggerService.Setup(x => x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(_webChat));
+            _patchWebChatHttpTriggerService.Setup(x => x.UpdateAsync(It.IsAny<Models.WebChat>(), It.IsAny<Models.WebChatPatch>())).Returns(Task.FromResult<Models.WebChat>(null));
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
@@ -218,14 +230,14 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeOK_WhenRequestIsNotValid()
         {
-            _httpRequestMessageHelper.GetWebChatFromRequest<WebChatPatch>(_request).Returns(Task.FromResult(_webChatPatch).Result);
-
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(true);
-            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
-
-            _patchWebChatHttpTriggerService.GetWebChatForCustomerAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(Task.FromResult(_webChat).Result);
-
-            _patchWebChatHttpTriggerService.UpdateAsync(Arg.Any<Models.WebChat>(), Arg.Any<WebChatPatch>()).Returns(Task.FromResult<Models.WebChat>(null).Result);
+            // Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
+            _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(true);
+            _patchWebChatHttpTriggerService.Setup(x => x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(_webChat));
+            _patchWebChatHttpTriggerService.Setup(x => x.UpdateAsync(It.IsAny<Models.WebChat>(), It.IsAny<Models.WebChatPatch>())).Returns(Task.FromResult<Models.WebChat>(null));
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
@@ -237,14 +249,14 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeOK_WhenRequestIsValid()
         {
-            _httpRequestMessageHelper.GetWebChatFromRequest<WebChatPatch>(_request).Returns(Task.FromResult(_webChatPatch).Result);
-
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(true);
-            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
-
-            _patchWebChatHttpTriggerService.GetWebChatForCustomerAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(Task.FromResult(_webChat).Result);
-
-            _patchWebChatHttpTriggerService.UpdateAsync(Arg.Any<Models.WebChat>(), Arg.Any<WebChatPatch>()).Returns(Task.FromResult(_webChat).Result);
+            // Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
+            _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(true);
+            _patchWebChatHttpTriggerService.Setup(x => x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(_webChat));
+            _patchWebChatHttpTriggerService.Setup(x => x.UpdateAsync(It.IsAny<Models.WebChat>(), It.IsAny<Models.WebChatPatch>())).Returns(Task.FromResult<Models.WebChat>(_webChat));
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
@@ -255,8 +267,8 @@ namespace NCS.DSS.WebChat.Tests
 
         private async Task<HttpResponseMessage> RunFunction(string customerId, string interactionId, string actionPlanId)
         {
-            return await PatchWebChatHttpTrigger.Function.PatchWebChatHttpTrigger.Run(
-                _request, _log, customerId, interactionId, actionPlanId, _resourceHelper, _httpRequestMessageHelper, _validate, _patchWebChatHttpTriggerService).ConfigureAwait(false);
+            return await function.Run(
+                _request, _log.Object, customerId, interactionId, actionPlanId).ConfigureAwait(false);
         }
 
     }

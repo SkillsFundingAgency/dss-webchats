@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NCS.DSS.WebChat.Cosmos.Helper;
 using NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Service;
-using NCS.DSS.WebChat.Helpers;
 using Moq;
 using NUnit.Framework;
 using Microsoft.AspNetCore.Http.Internal;
 using DFC.HTTP.Standard;
+using DFC.JSON.Standard;
 
 namespace NCS.DSS.WebChat.Tests
 {
@@ -30,6 +30,8 @@ namespace NCS.DSS.WebChat.Tests
         private Mock<IGetWebChatByIdHttpTriggerService> _getWebChatByIdHttpTriggerService;
         private Models.WebChat _webChat;
         private GetWebChatByIdHttpTrigger.Function.GetWebChatByIdHttpTrigger function;
+        private IHttpResponseMessageHelper _httpResponseMessageHelper;
+        private IJsonHelper _jsonHelper;
 
         [SetUp]
         public void Setup()
@@ -41,9 +43,11 @@ namespace NCS.DSS.WebChat.Tests
             _resourceHelper = new Mock<IResourceHelper>();
             _getWebChatByIdHttpTriggerService = new Mock<IGetWebChatByIdHttpTriggerService>();
             _httpRequestMessageHelper = new Mock<IHttpRequestHelper>();
+            _httpResponseMessageHelper = new HttpResponseMessageHelper();
+            _jsonHelper = new JsonHelper();
 
             function = new GetWebChatByIdHttpTrigger.Function.GetWebChatByIdHttpTrigger(_resourceHelper.Object,
-                _httpRequestMessageHelper.Object, _getWebChatByIdHttpTriggerService.Object);
+                _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, _getWebChatByIdHttpTriggerService.Object);
         }
 
         [Test]
@@ -54,16 +58,6 @@ namespace NCS.DSS.WebChat.Tests
 
             // Act
             var result = await RunFunction(InValidId, ValidInteractionId, ValidWebChatId);
-
-            // Assert
-            Assert.IsInstanceOf<HttpResponseMessage>(result);
-            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
-
-            // Arrange Interaction
-            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns<string>(null);
-
-            // Act
-            var result = await RunFunction(ValidCustomerId, ValidInteractionId);
 
             // Assert
             Assert.IsInstanceOf<HttpResponseMessage>(result);
@@ -106,7 +100,8 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task GetWebChatByIdHttpTrigger_ReturnsStatusCodeNoContent_WhenCustomerDoesNotExist()
         {
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).ReturnsForAnyArgs(false);
+            //Arrange
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(false));
 
             // Act
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
@@ -119,9 +114,9 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task GetWebChatByIdHttpTrigger_ReturnsStatusCodeNoContent_WhenInteractionDoesNotExist()
         {
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(true);
-
-            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(false);
+            //Arrange
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(false);
 
             // Act
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
@@ -134,10 +129,11 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task GetWebChatByIdHttpTrigger_ReturnsStatusCodeOk_WhenWebChatDoesNotExist()
         {
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(true);
-            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
+            //Arrange
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(true);
 
-            _getWebChatByIdHttpTriggerService.GetWebChatForCustomerAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(Task.FromResult<Models.WebChat>(null).Result);
+            _getWebChatByIdHttpTriggerService.Setup(x=> x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(null));
 
             // Act
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
@@ -150,11 +146,11 @@ namespace NCS.DSS.WebChat.Tests
         [Test]
         public async Task GetWebChatByIdHttpTrigger_ReturnsStatusCodeOk_WhenWebChatExists()
         {
-            _resourceHelper.DoesCustomerExist(Arg.Any<Guid>()).Returns(true);
-            _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(true);
+            //Arrange
+            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(true);
 
-            _getWebChatByIdHttpTriggerService.GetWebChatForCustomerAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(Task.FromResult(_webChat).Result);
-
+            _getWebChatByIdHttpTriggerService.Setup(x => x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(_webChat));
             // Act
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
@@ -165,9 +161,8 @@ namespace NCS.DSS.WebChat.Tests
 
         private async Task<HttpResponseMessage> RunFunction(string customerId, string interactionId, string actionPlanId)
         {
-            return await GetWebChatByIdHttpTrigger.Function.GetWebChatByIdHttpTrigger.Run(
-                _request, _log, customerId, interactionId, actionPlanId, _resourceHelper, _httpRequestMessageHelper, _getWebChatByIdHttpTriggerService).ConfigureAwait(false);
+            return await function.Run(
+                _request, _log.Object, customerId, interactionId, actionPlanId).ConfigureAwait(false);
         }
-
     }
 }

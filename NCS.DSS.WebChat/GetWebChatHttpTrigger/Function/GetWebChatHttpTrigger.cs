@@ -4,6 +4,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http.Description;
+using DFC.HTTP.Standard;
+using DFC.JSON.Standard;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -17,15 +20,22 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
     public class GetWebChatHttpTrigger
     {
         private IResourceHelper _resourceHelper;
-        private IHttpRequestMessageHelper _httpRequestMessageHelper;
+        private IHttpRequestHelper _httpRequestMessageHelper;
+        private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
+        private IJsonHelper _jsonHelper;
         private IGetWebChatHttpTriggerService _webChatGetService;
 
         public GetWebChatHttpTrigger(IResourceHelper resourceHelper,
-        IHttpRequestMessageHelper httpRequestMessageHelper, IGetWebChatHttpTriggerService webChatGetService)
+            IHttpRequestHelper httpRequestMessageHelper,
+            IHttpResponseMessageHelper httpResponseMessageHelper,
+            IJsonHelper jsonHelper,
+            IGetWebChatHttpTriggerService webChatGetService)
         {
             _resourceHelper = resourceHelper;
             _httpRequestMessageHelper = httpRequestMessageHelper;
+            _httpResponseMessageHelper = httpResponseMessageHelper;
             _webChatGetService = webChatGetService;
+            _jsonHelper = jsonHelper;
         }
 
         [FunctionName("Get")]
@@ -36,39 +46,39 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
         [Response(HttpStatusCode = (int)HttpStatusCode.Unauthorized, Description = "API key is unknown or invalid", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
         [Display(Name = "Get", Description = "Ability to return all webchat records for a given customer.")]
-        public async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")]HttpRequestMessage req, ILogger log, string customerId, string interactionId)
+        public async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")] HttpRequest req, ILogger log, string customerId, string interactionId)
 
         {
-            var touchpointId = _httpRequestMessageHelper.GetTouchpointId(req);
+            var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
                 log.LogInformation("Unable to locate 'TouchpointId' in request header.");
-                return HttpResponseMessageHelper.BadRequest();
+                return _httpResponseMessageHelper.BadRequest();
             }
 
             log.LogInformation("Get Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
-                return HttpResponseMessageHelper.BadRequest(customerGuid);
+                return _httpResponseMessageHelper.BadRequest(customerGuid);
 
             if (!Guid.TryParse(interactionId, out var interactionGuid))
-                return HttpResponseMessageHelper.BadRequest(interactionGuid);
+                return _httpResponseMessageHelper.BadRequest(interactionGuid);
 
             var doesCustomerExist = await _resourceHelper.DoesCustomerExist(customerGuid);
 
             if (!doesCustomerExist)
-                return HttpResponseMessageHelper.NoContent(customerGuid);
+                return _httpResponseMessageHelper.NoContent(customerGuid);
 
             var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
-                return HttpResponseMessageHelper.NoContent(interactionGuid);
+                return _httpResponseMessageHelper.NoContent(interactionGuid);
 
             var webChats = await _webChatGetService.GetWebChatsForCustomerAsync(customerGuid, interactionGuid);
 
             return webChats == null ?
-                HttpResponseMessageHelper.NoContent(customerGuid) :
-                HttpResponseMessageHelper.Ok(JsonHelper.SerializeObjects(webChats));
+                _httpResponseMessageHelper.NoContent(customerGuid) :
+                _httpResponseMessageHelper.Ok(_jsonHelper.SerializeObjectsAndRenameIdProperty(webChats, "id", "webChatId"));
         }
     }
 }
