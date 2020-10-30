@@ -10,7 +10,7 @@ namespace NCS.DSS.WebChat.APIDefinition
 {
     public class ApiDefinition
     {
-        public const string APITitle = "Interactions";
+        public const string APITitle = "WebChats";
         public const string APIDefinitionName = "API-Definition";
         public const string APIDefRoute = APITitle + "/" + APIDefinitionName;
         public const string APIDescription = "Basic details of a National Careers Service " + APITitle + " Resource";
