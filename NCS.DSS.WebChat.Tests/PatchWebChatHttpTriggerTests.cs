@@ -26,7 +26,7 @@ namespace NCS.DSS.WebChat.Tests
         private const string ValidWebChatId = "d5369b9a-6959-4bd3-92fc-1583e72b7e51";
         private const string InValidId = "1111111-2222-3333-4444-555555555555";
         private Models.WebChat _webChat;
-        private WebChatPatch _webChatPatch;
+        private Models.WebChatPatch _webChatPatch;
         private Mock<ILogger> _log;
         private DefaultHttpRequest _request;
         private Mock<IResourceHelper> _resourceHelper;
@@ -41,6 +41,7 @@ namespace NCS.DSS.WebChat.Tests
         public void Setup()
         {
             _webChat = new Models.WebChat();
+            _webChatPatch = new WebChatPatch();
             _validate = new Validate();
             _request = null;
             _log = new Mock<ILogger>();
