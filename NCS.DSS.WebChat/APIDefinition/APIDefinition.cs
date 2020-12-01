@@ -32,7 +32,7 @@ namespace NCS.DSS.WebChat.APIDefinition
             public Result(T value) { Value = value; }
             public T Value{ get; set; }
         }
-        
+         
         [FunctionName(APIDefinitionName)]
         [ResponseType(typeof(void))]
         public static async Task<HttpResponseMessage> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = APIDefRoute)]HttpRequestMessage req)
