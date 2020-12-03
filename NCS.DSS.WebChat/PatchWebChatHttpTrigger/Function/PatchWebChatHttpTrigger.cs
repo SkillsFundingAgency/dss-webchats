@@ -11,9 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Annotations;
 using NCS.DSS.WebChat.Cosmos.Helper;
-using NCS.DSS.WebChat.Helpers;
+using DFC.Swagger.Standard.Annotations;
 using NCS.DSS.WebChat.Models;
 using NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
@@ -46,7 +45,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
         }
 
         [FunctionName("Patch")]
-        [ProducesResponseTypeAttribute(typeof(Models.WebChat), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(Models.WebChat), 200)]
         [Response(HttpStatusCode = (int)HttpStatusCode.OK, Description = "WebChat Updated", ShowSchema = true)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "WebChat does not exist", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.BadRequest, Description = "Request was malformed", ShowSchema = false)]

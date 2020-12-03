@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using DFC.Swagger.Standard.Annotations;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -10,10 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Annotations;
 using NCS.DSS.WebChat.Cosmos.Helper;
 using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
-using NCS.DSS.WebChat.Helpers;
 
 namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
 {
@@ -39,7 +38,7 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
         }
 
         [FunctionName("Get")]
-        [ProducesResponseTypeAttribute(typeof(Models.WebChat), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(Models.WebChat), 200)]
         [Response(HttpStatusCode = (int)HttpStatusCode.OK, Description = "WebChats found", ShowSchema = true)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "WebChats do not exist", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.BadRequest, Description = "Request was malformed", ShowSchema = false)]

@@ -11,9 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Annotations;
 using NCS.DSS.WebChat.Cosmos.Helper;
-using NCS.DSS.WebChat.Helpers;
+using DFC.Swagger.Standard.Annotations;
 using NCS.DSS.WebChat.PostWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
 using Newtonsoft.Json;
@@ -45,7 +44,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
         }
 
         [FunctionName("Post")]
-        [ProducesResponseTypeAttribute(typeof(Models.WebChat), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(Models.WebChat), 201)]
         [Response(HttpStatusCode = (int)HttpStatusCode.Created, Description = "WebChat Created", ShowSchema = true)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "WebChat does not exist", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.BadRequest, Description = "Request was malformed", ShowSchema = false)]
