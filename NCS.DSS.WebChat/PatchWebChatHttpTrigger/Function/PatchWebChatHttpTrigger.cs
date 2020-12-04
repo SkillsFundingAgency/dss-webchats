@@ -129,7 +129,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
 
             return updatedWebChat == null ?
                 _httpResponseMessageHelper.BadRequest(webChatGuid) :
-                _httpResponseMessageHelper.Ok(_jsonHelper.SerializeObjectAndRenameIdProperty(updatedWebChat, "id", "webChatId"));
+                _httpResponseMessageHelper.Ok(_jsonHelper.SerializeObjectAndRenameIdProperty(updatedWebChat, "id", "WebChatId"));
         }
     }
 }
