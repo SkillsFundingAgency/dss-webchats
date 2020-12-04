@@ -1,4 +1,5 @@
 ﻿using DFC.HTTP.Standard;
+using DFC.JSON.Standard;
 using DFC.Swagger.Standard;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,7 +7,6 @@ using NCS.DSS.WebChat;
 using NCS.DSS.WebChat.Cosmos.Helper;
 using NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Service;
 using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
-using NCS.DSS.WebChat.Helpers;
 using NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.PostWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
@@ -28,8 +28,9 @@ namespace NCS.DSS.WebChat
             builder.Services.AddTransient<IPatchWebChatHttpTriggerService, PatchWebChatHttpTriggerService>();
             builder.Services.AddTransient<IResourceHelper, ResourceHelper>();
             builder.Services.AddTransient<IValidate, Validate>();
-            builder.Services.AddTransient<IHttpRequestMessageHelper, HttpRequestMessageHelper>();
+            builder.Services.AddTransient<IHttpRequestHelper, DFC.HTTP.Standard.HttpRequestHelper>();
             builder.Services.AddTransient<IHttpResponseMessageHelper, DFC.HTTP.Standard.HttpResponseMessageHelper>();
+            builder.Services.AddTransient<IJsonHelper, DFC.JSON.Standard.JsonHelper>();
         }
     }
 }
