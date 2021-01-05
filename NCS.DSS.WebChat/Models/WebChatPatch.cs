@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using NCS.DSS.WebChat.Annotations;
+using DFC.Swagger.Standard.Annotations;
 
 namespace NCS.DSS.WebChat.Models
 {
