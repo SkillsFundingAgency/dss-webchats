@@ -12,8 +12,8 @@ namespace NCS.DSS.WebChat.DeleteWebChatHttpTrigger
 {
     public static class DeleteWebChatHttpTrigger
     {
+        [Disable]
         [FunctionName("Delete")]
-        [SwaggerIgnore]
         [Response(HttpStatusCode = (int)HttpStatusCode.OK, Description = "WebChat Deleted", ShowSchema = true)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "WebChat does not exist", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.BadRequest, Description = "Request was malformed", ShowSchema = false)]
