@@ -4,25 +4,47 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web.Http.Description;
+using DFC.HTTP.Standard;
+using DFC.JSON.Standard;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Annotations;
 using NCS.DSS.WebChat.Cosmos.Helper;
-using NCS.DSS.WebChat.Helpers;
-using NCS.DSS.WebChat.Ioc;
+using DFC.Swagger.Standard.Annotations;
 using NCS.DSS.WebChat.PostWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
 using Newtonsoft.Json;
 
 namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
 {
-    public static class PostWebChatHttpTrigger
+    public class PostWebChatHttpTrigger
     {
+        private IResourceHelper _resourceHelper;
+        private IHttpRequestHelper _httpRequestMessageHelper;
+        private IValidate _validate;
+        private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
+        private IJsonHelper _jsonHelper;
+        private IPostWebChatHttpTriggerService _webChatPostService;
+
+        public PostWebChatHttpTrigger(IResourceHelper resourceHelper,
+            IHttpRequestHelper httpRequestMessageHelper,
+            IHttpResponseMessageHelper httpResponseMessageHelper,
+            IJsonHelper jsonHelper,
+            IValidate validate,
+            IPostWebChatHttpTriggerService webChatPostService)
+        {
+            _resourceHelper = resourceHelper;
+            _httpRequestMessageHelper = httpRequestMessageHelper;
+            _httpResponseMessageHelper = httpResponseMessageHelper;
+            _webChatPostService = webChatPostService;
+            _jsonHelper = jsonHelper;
+            _validate = validate;
+        }
+
         [FunctionName("Post")]
-        [ResponseType(typeof(Models.WebChat))]
+        [ProducesResponseType(typeof(Models.WebChat), 201)]
         [Response(HttpStatusCode = (int)HttpStatusCode.Created, Description = "WebChat Created", ShowSchema = true)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "WebChat does not exist", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.BadRequest, Description = "Request was malformed", ShowSchema = false)]
@@ -30,78 +52,74 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
         [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
         [Response(HttpStatusCode = 422, Description = "WebChat validation error(s)", ShowSchema = false)]
         [Display(Name = "Post", Description = "Ability to create a new webchat resource.")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")]HttpRequestMessage req, ILogger log, string customerId, string interactionId,
-            [Inject]IResourceHelper resourceHelper,
-            [Inject]IHttpRequestMessageHelper httpRequestMessageHelper,
-            [Inject]IValidate validate,
-            [Inject]IPostWebChatHttpTriggerService webChatPostService)
+        public async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")] HttpRequest req, ILogger log, string customerId, string interactionId)
         {
-            var touchpointId = httpRequestMessageHelper.GetTouchpointId(req);
+            var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
                 log.LogInformation("Unable to locate 'TouchpointId' in request header.");
-                return HttpResponseMessageHelper.BadRequest();
+                return _httpResponseMessageHelper.BadRequest();
             }
 
-            var ApimURL = httpRequestMessageHelper.GetApimURL(req);
+            var ApimURL = _httpRequestMessageHelper.GetDssApimUrl(req);
             if (string.IsNullOrEmpty(ApimURL))
             {
                 log.LogInformation("Unable to locate 'apimurl' in request header");
-                return HttpResponseMessageHelper.BadRequest();
+                return _httpResponseMessageHelper.BadRequest();
             }
 
             log.LogInformation("Post Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
-                return HttpResponseMessageHelper.BadRequest(customerGuid);
+                return _httpResponseMessageHelper.BadRequest(customerGuid);
 
             if (!Guid.TryParse(interactionId, out var interactionGuid))
-                return HttpResponseMessageHelper.BadRequest(interactionGuid);
+                return _httpResponseMessageHelper.BadRequest(interactionGuid);
 
             Models.WebChat webChatRequest;
 
             try
             {
-                webChatRequest = await httpRequestMessageHelper.GetWebChatFromRequest<Models.WebChat>(req);
+                webChatRequest = await _httpRequestMessageHelper.GetResourceFromRequest<Models.WebChat>(req);
             }
             catch (JsonException ex)
             {
-                return HttpResponseMessageHelper.UnprocessableEntity(ex);
+                return _httpResponseMessageHelper.UnprocessableEntity(ex);
             }
 
             if (webChatRequest == null)
-                return HttpResponseMessageHelper.UnprocessableEntity(req);
+                return _httpResponseMessageHelper.UnprocessableEntity(req);
 
             webChatRequest.SetIds(customerGuid, interactionGuid, touchpointId);
 
-            var errors = validate.ValidateResource(webChatRequest, true);
+            var errors = _validate.ValidateResource(webChatRequest, true);
 
             if (errors != null && errors.Any())
-                return HttpResponseMessageHelper.UnprocessableEntity(errors);
+                return _httpResponseMessageHelper.UnprocessableEntity(errors);
 
-            var doesCustomerExist = await resourceHelper.DoesCustomerExist(customerGuid);
+            var doesCustomerExist = await _resourceHelper.DoesCustomerExist(customerGuid);
 
             if (!doesCustomerExist)
-                return HttpResponseMessageHelper.NoContent(customerGuid);
+                return _httpResponseMessageHelper.NoContent(customerGuid);
 
-            var isCustomerReadOnly = await resourceHelper.IsCustomerReadOnly(customerGuid);
+            var isCustomerReadOnly = await _resourceHelper.IsCustomerReadOnly(customerGuid);
 
             if (isCustomerReadOnly)
-                return HttpResponseMessageHelper.Forbidden(customerGuid);
+                return _httpResponseMessageHelper.Forbidden(customerGuid);
 
-            var doesInteractionExist = resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
+            var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
-                return HttpResponseMessageHelper.NoContent(interactionGuid);
+                return _httpResponseMessageHelper.NoContent(interactionGuid);
 
-            var webChat = await webChatPostService.CreateAsync(webChatRequest);
+            var webChat = await _webChatPostService.CreateAsync(webChatRequest);
 
             if (webChat != null)
-                await webChatPostService.SendToServiceBusQueueAsync(webChat, ApimURL);
+                await _webChatPostService.SendToServiceBusQueueAsync(webChat, ApimURL);
 
             return webChat == null
-                ? HttpResponseMessageHelper.BadRequest(customerGuid)
-                : HttpResponseMessageHelper.Created(JsonHelper.SerializeObject(webChat));
+                ? _httpResponseMessageHelper.BadRequest(customerGuid)
+                : _httpResponseMessageHelper.Created(_jsonHelper.SerializeObjectAndRenameIdProperty(webChat, "id", "WebChatId"));
         }
     }
 }

@@ -1,52 +1,44 @@
-﻿using System;
-using System.Configuration;
-using System.IO;
+﻿using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
+using System;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
-using Newtonsoft.Json;
 
 namespace NCS.DSS.WebChat.ServiceBus
 {
     public static class ServiceBusClient
     {
-        public static readonly string KeyName = ConfigurationManager.AppSettings["KeyName"];
-        public static readonly string AccessKey = ConfigurationManager.AppSettings["AccessKey"];
-        public static readonly string BaseAddress = ConfigurationManager.AppSettings["BaseAddress"];
-        public static readonly string QueueName = ConfigurationManager.AppSettings["QueueName"];
-
+        public static readonly string KeyName = Environment.GetEnvironmentVariable("KeyName");
+        public static readonly string AccessKey = Environment.GetEnvironmentVariable("AccessKey");
+        public static readonly string BaseAddress = Environment.GetEnvironmentVariable("BaseAddress");
+        public static readonly string QueueName = Environment.GetEnvironmentVariable("QueueName");
+        public static readonly string ServiceBusConnectionString = $"Endpoint={BaseAddress};SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey={AccessKey}";
         public static async Task SendPostMessageAsync(Models.WebChat webChat, string reqUrl)
         {
-            var tokenProvider = TokenProvider.CreateSharedAccessSignatureTokenProvider(KeyName, AccessKey);
-            var messagingFactory = MessagingFactory.Create(BaseAddress, tokenProvider);
-            var sender = messagingFactory.CreateMessageSender(QueueName);
+            var queueClient = new QueueClient(ServiceBusConnectionString, QueueName);
 
             var messageModel = new MessageModel()
             {
-                TitleMessage = "New WebChat record {" + webChat.WebChatId + "} added at " + DateTime.UtcNow,
+                TitleMessage = "New WebChat record {" + webChat.InteractionId + "} added at " + DateTime.UtcNow,
                 CustomerGuid = webChat.CustomerId,
                 LastModifiedDate = webChat.LastModifiedDate,
-                URL = reqUrl + "/" + webChat.WebChatId,
+                URL = reqUrl + "/" + webChat.InteractionId,
                 IsNewCustomer = false,
                 TouchpointId = webChat.LastModifiedTouchpointId
             };
 
-            var msg = new BrokeredMessage(new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageModel))))
+            var msg = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageModel)))
             {
                 ContentType = "application/json",
                 MessageId = webChat.CustomerId + " " + DateTime.UtcNow
             };
 
-            //msg.ForcePersistence = true; Required when we save message to cosmos
-            await sender.SendAsync(msg);
+            await queueClient.SendAsync(msg);
         }
 
         public static async Task SendPatchMessageAsync(Models.WebChat webChat, Guid customerId, string reqUrl)
         {
-            var tokenProvider = TokenProvider.CreateSharedAccessSignatureTokenProvider(KeyName, AccessKey);
-            var messagingFactory = MessagingFactory.Create(BaseAddress, tokenProvider);
-            var sender = messagingFactory.CreateMessageSender(QueueName);
+            var queueClient = new QueueClient(ServiceBusConnectionString, QueueName);
             var messageModel = new MessageModel
             {
                 TitleMessage = "WebChat record modification for {" + customerId + "} at " + DateTime.UtcNow,
@@ -55,17 +47,13 @@ namespace NCS.DSS.WebChat.ServiceBus
                 URL = reqUrl,
                 IsNewCustomer = false,
                 TouchpointId = webChat.LastModifiedTouchpointId
-
             };
-
-            var msg = new BrokeredMessage(new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageModel))))
+            var msg = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageModel)))
             {
                 ContentType = "application/json",
                 MessageId = customerId + " " + DateTime.UtcNow
             };
-
-            //msg.ForcePersistence = true; Required when we save message to cosmos
-            await sender.SendAsync(msg);
+            await queueClient.SendAsync(msg);
         }
 
     }
