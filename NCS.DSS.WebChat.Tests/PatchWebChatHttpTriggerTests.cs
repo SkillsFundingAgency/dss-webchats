@@ -60,6 +60,22 @@ namespace NCS.DSS.WebChat.Tests
         {
             // Arrange
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns<string>(null);
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
+
+            // Act
+            var result = await RunFunction(InValidId, ValidInteractionId, ValidWebChatId);
+
+            // Assert
+            Assert.IsInstanceOf<HttpResponseMessage>(result);
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+        }
+
+        [Test]
+        public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeBadRequest_WhenSubcontractorIdIsNotProvided()
+        {
+            // Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns<string>(null);
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
 
             // Act
             var result = await RunFunction(InValidId, ValidInteractionId, ValidWebChatId);
@@ -111,6 +127,7 @@ namespace NCS.DSS.WebChat.Tests
             validate.Setup(x => x.ValidateResource(It.IsAny<Models.WebChatPatch>(),false)).Returns(validationResults);
             function = new PatchWebChatHttpTrigger.Function.PatchWebChatHttpTrigger(_resourceHelper.Object, _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, validate.Object, _patchWebChatHttpTriggerService.Object);
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
             _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
@@ -127,6 +144,7 @@ namespace NCS.DSS.WebChat.Tests
         {
             // Arrange
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Throws(new JsonException());
 
@@ -142,6 +160,7 @@ namespace NCS.DSS.WebChat.Tests
         {
             //Arrange
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
             _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(false));
@@ -159,6 +178,7 @@ namespace NCS.DSS.WebChat.Tests
         {
             // Arrange
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
             _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
@@ -178,6 +198,7 @@ namespace NCS.DSS.WebChat.Tests
         {
             // Arrange
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
             _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
@@ -196,6 +217,7 @@ namespace NCS.DSS.WebChat.Tests
         {
             // Arrange
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
             _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
@@ -214,6 +236,7 @@ namespace NCS.DSS.WebChat.Tests
         {
             // Arrange
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
             _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
@@ -233,6 +256,7 @@ namespace NCS.DSS.WebChat.Tests
         {
             // Arrange
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
             _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
@@ -252,6 +276,7 @@ namespace NCS.DSS.WebChat.Tests
         {
             // Arrange
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChatPatch>(_request)).Returns(Task.FromResult(_webChatPatch));
             _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
