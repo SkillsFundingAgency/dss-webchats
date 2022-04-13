@@ -61,6 +61,13 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
                 return _httpResponseMessageHelper.BadRequest();
             }
 
+            var subcontractorId = _httpRequestMessageHelper.GetDssSubcontractorId(req);
+            if (string.IsNullOrEmpty(subcontractorId))
+            {
+                log.LogInformation("Unable to locate 'SubcontractorId' in request header.");
+                return _httpResponseMessageHelper.BadRequest();
+            }
+
             var ApimURL = _httpRequestMessageHelper.GetDssApimUrl(req);
             if (string.IsNullOrEmpty(ApimURL))
             {
@@ -68,7 +75,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
                 return _httpResponseMessageHelper.BadRequest();
             }
 
-            log.LogInformation("Post Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
+            log.LogInformation($"Post Web Chat C# HTTP trigger function processed a request. By Touchpoint {touchpointId} and SubcontractorId {subcontractorId}");
 
             if (!Guid.TryParse(customerId, out var customerGuid))
                 return _httpResponseMessageHelper.BadRequest(customerGuid);
@@ -90,7 +97,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
             if (webChatRequest == null)
                 return _httpResponseMessageHelper.UnprocessableEntity(req);
 
-            webChatRequest.SetIds(customerGuid, interactionGuid, touchpointId);
+            webChatRequest.SetIds(customerGuid, interactionGuid, touchpointId, subcontractorId);
 
             var errors = _validate.ValidateResource(webChatRequest, true);
 

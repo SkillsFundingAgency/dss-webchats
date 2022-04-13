@@ -62,6 +62,13 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
                 return _httpResponseMessageHelper.BadRequest();
             }
 
+            var subcontractorId = _httpRequestMessageHelper.GetDssSubcontractorId(req);
+            if (string.IsNullOrEmpty(subcontractorId))
+            {
+                log.LogInformation("Unable to locate 'SubcontractorId' in request header.");
+                return _httpResponseMessageHelper.BadRequest();
+            }
+
             var ApimURL = _httpRequestMessageHelper.GetDssApimUrl(req);
             if (string.IsNullOrEmpty(ApimURL))
             {
@@ -69,7 +76,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
                 return _httpResponseMessageHelper.BadRequest();
             }
 
-            log.LogInformation("Patch Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
+            log.LogInformation($"Patch Web Chat C# HTTP trigger function processed a request. By Touchpoint {touchpointId} and SubcontractorId {subcontractorId}");
 
             if (!Guid.TryParse(customerId, out var customerGuid))
                 return _httpResponseMessageHelper.BadRequest(customerGuid);

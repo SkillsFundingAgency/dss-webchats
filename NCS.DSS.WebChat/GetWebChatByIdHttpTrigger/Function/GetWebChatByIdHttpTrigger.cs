@@ -54,7 +54,14 @@ namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Function
                 return _httpResponseMessageHelper.BadRequest();
             }
 
-            log.LogInformation("Get Web Chat By Id C# HTTP trigger function  processed a request. By Touchpoint. " + touchpointId);
+            var subcontractorId = _httpRequestMessageHelper.GetDssSubcontractorId(req);
+            if (string.IsNullOrEmpty(subcontractorId))
+            {
+                log.LogInformation("Unable to locate 'subcontractorId' in request header.");
+                return _httpResponseMessageHelper.BadRequest();
+            }
+
+            log.LogInformation($"Get Web Chat By Id C# HTTP trigger function  processed a request. By Touchpoint {touchpointId} and by SubcontractorId {subcontractorId}");
 
             if (!Guid.TryParse(customerId, out var customerGuid))
                 return _httpResponseMessageHelper.BadRequest(customerGuid);

@@ -24,7 +24,7 @@ namespace NCS.DSS.WebChat.ServiceBus
                 LastModifiedDate = webChat.LastModifiedDate,
                 URL = reqUrl + "/" + webChat.InteractionId,
                 IsNewCustomer = false,
-                TouchpointId = webChat.LastModifiedTouchpointId
+                TouchpointId = webChat.LastModifiedTouchpointId,
             };
 
             var msg = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageModel)))
@@ -46,7 +46,7 @@ namespace NCS.DSS.WebChat.ServiceBus
                 LastModifiedDate = webChat.LastModifiedDate,
                 URL = reqUrl,
                 IsNewCustomer = false,
-                TouchpointId = webChat.LastModifiedTouchpointId
+                TouchpointId = webChat.LastModifiedTouchpointId,
             };
             var msg = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(messageModel)))
             {
@@ -66,6 +66,7 @@ namespace NCS.DSS.WebChat.ServiceBus
         public string URL { get; set; }
         public bool IsNewCustomer { get; set; }
         public string TouchpointId { get; set; }
+        public string SubcontractorId { get; set; }
     }
 
 }

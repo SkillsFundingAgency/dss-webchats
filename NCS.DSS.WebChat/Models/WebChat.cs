@@ -75,7 +75,7 @@ namespace NCS.DSS.WebChat.Models
                 WebChatDuration = WebChatEndDateandTime.Value.Subtract(WebChatStartDateandTime.Value);
         }
 
-        public void SetIds(Guid customerId, Guid interactionId, string touchpointId)
+        public void SetIds(Guid customerId, Guid interactionId, string touchpointId, string subcontractorId)
         {
             WebChatId = Guid.NewGuid();
             CustomerId = customerId;
