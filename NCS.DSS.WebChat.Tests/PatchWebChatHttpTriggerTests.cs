@@ -50,6 +50,8 @@ namespace NCS.DSS.WebChat.Tests
             _httpRequestMessageHelper = new Mock<IHttpRequestHelper>();
             _httpResponseMessageHelper = new HttpResponseMessageHelper();
             _jsonHelper = new JsonHelper();
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns("9999999999");
+
 
             function = new PatchWebChatHttpTrigger.Function.PatchWebChatHttpTrigger(_resourceHelper.Object,
                 _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, _validate, _patchWebChatHttpTriggerService.Object);
@@ -60,6 +62,20 @@ namespace NCS.DSS.WebChat.Tests
         {
             // Arrange
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns<string>(null);
+
+            // Act
+            var result = await RunFunction(InValidId, ValidInteractionId, ValidWebChatId);
+
+            // Assert
+            Assert.IsInstanceOf<HttpResponseMessage>(result);
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+        }
+
+        [Test]
+        public async Task GetWebChatByIdHttpTrigger_ReturnsStatusCodeBadRequest_WhenSubcontractorIdIsNotProvided()
+        {
+            // Arrange
+            _httpRequestMessageHelper.Setup(x => x.GetDssSubcontractorId(_request)).Returns<string>(null);
 
             // Act
             var result = await RunFunction(InValidId, ValidInteractionId, ValidWebChatId);
