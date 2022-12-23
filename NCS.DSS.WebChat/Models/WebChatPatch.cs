@@ -1,6 +1,7 @@
-﻿using System;
+﻿using DFC.Swagger.Standard.Annotations;
+using System;
 using System.ComponentModel.DataAnnotations;
-using NCS.DSS.WebChat.Annotations;
+using DFC.Swagger.Standard.Annotations;
 
 namespace NCS.DSS.WebChat.Models
 {
@@ -57,7 +58,6 @@ namespace NCS.DSS.WebChat.Models
 
             if (WebChatStartDateandTime.HasValue && WebChatEndDateandTime.HasValue)
                 WebChatDuration = WebChatEndDateandTime.Value.Subtract(WebChatStartDateandTime.Value);
-
         }
     }
 }

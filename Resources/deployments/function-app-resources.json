@@ -48,9 +48,11 @@
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
       "properties": {
+        "httpsOnly": true,
         "serverFarmId": "[parameters('appServicePlanId')]",
         "siteConfig": {
           "alwaysOn": true,
+          "mintlsVersion": "1.2",
           "appSettings": [
             {
               "name": "EnvironmentName",
@@ -58,7 +60,7 @@
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~1"
+              "value": "~3"
             },
             {
               "name": "MSDEPLOY_RENAME_LOCKED_FILES",

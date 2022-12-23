@@ -1,68 +1,85 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using DFC.Swagger.Standard.Annotations;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web.Http.Description;
+using DFC.HTTP.Standard;
+using DFC.JSON.Standard;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Annotations;
 using NCS.DSS.WebChat.Cosmos.Helper;
 using NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Service;
-using NCS.DSS.WebChat.Helpers;
-using NCS.DSS.WebChat.Ioc;
 
 namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Function
 {
-    public static class GetWebChatByIdHttpTrigger
+    public class GetWebChatByIdHttpTrigger
     {
+        private IResourceHelper _resourceHelper;
+        private IHttpRequestHelper _httpRequestMessageHelper;
+        private IGetWebChatByIdHttpTriggerService _webChatGetService;
+        private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
+        private IJsonHelper _jsonHelper;
+
+        public GetWebChatByIdHttpTrigger(IResourceHelper resourceHelper,
+            IHttpRequestHelper httpRequestMessageHelper,
+            IHttpResponseMessageHelper httpResponseMessageHelper,
+            IJsonHelper jsonHelper,
+            IGetWebChatByIdHttpTriggerService webChatGetService)
+        {
+            _resourceHelper = resourceHelper;
+            _httpRequestMessageHelper = httpRequestMessageHelper;
+            _httpResponseMessageHelper = httpResponseMessageHelper;
+            _webChatGetService = webChatGetService;
+            _jsonHelper = jsonHelper;
+        }
+
         [FunctionName("GetById")]
-        [ResponseType(typeof(Models.WebChat))]
+        [ProducesResponseType(typeof(Models.WebChat), 200)]
         [Response(HttpStatusCode = (int)HttpStatusCode.OK, Description = "WebChat found", ShowSchema = true)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "WebChat does not exist", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.BadRequest, Description = "Request was malformed", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.Unauthorized, Description = "API key is unknown or invalid", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
         [Display(Name = "Get", Description = "Ability to retrieve an individual webchat record.")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")]HttpRequestMessage req, ILogger log, string customerId, string interactionId, string webChatId,
-            [Inject]IResourceHelper resourceHelper,
-            [Inject]IHttpRequestMessageHelper httpRequestMessageHelper,
-            [Inject]IGetWebChatByIdHttpTriggerService webChatGetService)
+        public async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")]HttpRequest req, ILogger log, string customerId, string interactionId, string webChatId)
         {
-            var touchpointId = httpRequestMessageHelper.GetTouchpointId(req);
+            var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
                 log.LogInformation("Unable to locate 'TouchpointId' in request header.");
-                return HttpResponseMessageHelper.BadRequest();
+                return _httpResponseMessageHelper.BadRequest();
             }
 
             log.LogInformation("Get Web Chat By Id C# HTTP trigger function  processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
-                return HttpResponseMessageHelper.BadRequest(customerGuid);
+                return _httpResponseMessageHelper.BadRequest(customerGuid);
 
             if (!Guid.TryParse(interactionId, out var interactionGuid))
-                return HttpResponseMessageHelper.BadRequest(interactionGuid);
+                return _httpResponseMessageHelper.BadRequest(interactionGuid);
 
             if (!Guid.TryParse(webChatId, out var webChatGuid))
-                return HttpResponseMessageHelper.BadRequest(webChatGuid);
+                return _httpResponseMessageHelper.BadRequest(webChatGuid);
 
-            var doesCustomerExist = await resourceHelper.DoesCustomerExist(customerGuid);
+            var doesCustomerExist = await _resourceHelper.DoesCustomerExist(customerGuid);
 
             if (!doesCustomerExist)
-                return HttpResponseMessageHelper.NoContent(customerGuid);
+                return _httpResponseMessageHelper.NoContent(customerGuid);
 
-            var doesInteractionExist = resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
+            var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
-                return HttpResponseMessageHelper.NoContent(interactionGuid);
+                return _httpResponseMessageHelper.NoContent(interactionGuid);
 
-            var webChat = await webChatGetService.GetWebChatForCustomerAsync(customerGuid, interactionGuid, webChatGuid);
+            var webChat = await _webChatGetService.GetWebChatForCustomerAsync(customerGuid, interactionGuid, webChatGuid);
 
             return webChat == null ?
-                HttpResponseMessageHelper.NoContent(webChatGuid) :
-                HttpResponseMessageHelper.Ok(JsonHelper.SerializeObject(webChat));
+                _httpResponseMessageHelper.NoContent(webChatGuid) :
+                _httpResponseMessageHelper.Ok(_jsonHelper.SerializeObjectAndRenameIdProperty(webChat,"id", "WebChatId"));
         }
     }
 }
