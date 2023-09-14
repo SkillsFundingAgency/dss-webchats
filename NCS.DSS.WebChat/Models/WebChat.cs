@@ -17,6 +17,8 @@ namespace NCS.DSS.WebChat.Models
 
         [Display(Description = "Unique identifier of the customer interaction record.")]
         [Example(Description = "2730af9c-fc34-4c2b-a905-c4b584b0f379")]
+        //Remove this comment
+        
         public Guid? InteractionId { get; set; }
 
         [StringLength(100)]
