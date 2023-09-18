@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 namespace NCS.DSS.WebChat.Tests.ValidateTests
 {
     [TestFixture]
-    public class ValidateTests
+    public class ValidateTests_Patch
     {
         private IValidate _validate;
 
@@ -20,7 +20,7 @@ namespace NCS.DSS.WebChat.Tests.ValidateTests
         [Test]
         public void ValidateTests_ReturnValidationResult_WhenDigitalReferenceIsInvalid()
         {
-            var webChat = new Models.WebChat
+            var webChat = new Models.WebChatPatch
             {
                 DigitalReference = "Test[]abc+?",
                 WebChatStartDateandTime = DateTime.UtcNow.AddMinutes(-10),
@@ -38,7 +38,7 @@ namespace NCS.DSS.WebChat.Tests.ValidateTests
         [Test]
         public void ValidateTests_ReturnValidationResult_WhenDigitalReferenceIsValid()
         {
-            var webChat = new Models.WebChat
+            var webChat = new Models.WebChatPatch
             {
                 DigitalReference = "TestValue123",
                 WebChatStartDateandTime = DateTime.UtcNow.AddMinutes(-10),
@@ -56,7 +56,7 @@ namespace NCS.DSS.WebChat.Tests.ValidateTests
         [Test]
         public void ValidateTests_ReturnValidationResult_WhenWebChatNarrativeIsInvalid()
         {
-            var webChat = new Models.WebChat
+            var webChat = new Models.WebChatPatch
             {
                 DigitalReference = "TestValue123",
                 WebChatStartDateandTime = DateTime.UtcNow.AddMinutes(-10),
@@ -74,7 +74,7 @@ namespace NCS.DSS.WebChat.Tests.ValidateTests
         [Test]
         public void ValidateTests_ReturnValidationResult_WhenWebChatNarrativeIsValid()
         {
-            var webChat = new Models.WebChat
+            var webChat = new Models.WebChatPatch
             {
                 DigitalReference = "TestValue123",
                 WebChatStartDateandTime = DateTime.UtcNow.AddMinutes(-10),
@@ -92,7 +92,7 @@ namespace NCS.DSS.WebChat.Tests.ValidateTests
         [Test]
         public void ValidateTests_ReturnValidationResult_WhenLastModifiedTouchpointIdIsInvalid()
         {
-            var webChat = new Models.WebChat
+            var webChat = new Models.WebChatPatch
             {
                 DigitalReference = "TestValue123",
                 WebChatStartDateandTime = DateTime.UtcNow.AddMinutes(-10),
@@ -111,7 +111,7 @@ namespace NCS.DSS.WebChat.Tests.ValidateTests
         [Test]
         public void ValidateTests_ReturnValidationResult_WhenLastModifiedTouchpointIdIsValid()
         {
-            var webChat = new Models.WebChat
+            var webChat = new Models.WebChatPatch
             {
                 DigitalReference = "TestValue123",
                 WebChatStartDateandTime = DateTime.UtcNow.AddMinutes(-10),
