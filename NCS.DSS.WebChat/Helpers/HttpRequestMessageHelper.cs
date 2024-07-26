@@ -3,12 +3,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace NCS.DSS.WebChat.Helpers
 {
     public class HttpRequestMessageHelper : IHttpRequestMessageHelper
     {
-        public async Task<T> GetWebChatFromRequest<T>(HttpRequestMessage req)
+        public async Task<T> GetWebChatFromRequest<T>(HttpRequest req)
         {
             if (req == null)
                 return default(T);
@@ -19,7 +20,7 @@ namespace NCS.DSS.WebChat.Helpers
             return await req.Content.ReadAsAsync<T>();
         }
 
-        public string GetTouchpointId(HttpRequestMessage req)
+        public string GetTouchpointId(HttpRequest req)
         {
             if (req?.Headers == null)
                 return null;
@@ -32,7 +33,7 @@ namespace NCS.DSS.WebChat.Helpers
             return string.IsNullOrEmpty(touchpointId) ? string.Empty : touchpointId;
         }
 
-        public string GetApimURL(HttpRequestMessage req)
+        public string GetApimURL(HttpRequest req)
         {
             if (req?.Headers == null)
                 return null;

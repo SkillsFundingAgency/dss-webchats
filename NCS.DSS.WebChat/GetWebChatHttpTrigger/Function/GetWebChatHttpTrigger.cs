@@ -8,11 +8,10 @@ using DFC.HTTP.Standard;
 using DFC.JSON.Standard;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using NCS.DSS.WebChat.Cosmos.Helper;
 using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
+using Microsoft.Azure.Functions.Worker;
 
 namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
 {
@@ -37,7 +36,7 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
             _jsonHelper = jsonHelper;
         }
 
-        [FunctionName("Get")]
+        [Function("Get")]
         [ProducesResponseType(typeof(Models.WebChat), 200)]
         [Response(HttpStatusCode = (int)HttpStatusCode.OK, Description = "WebChats found", ShowSchema = true)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "WebChats do not exist", ShowSchema = false)]
@@ -45,7 +44,7 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
         [Response(HttpStatusCode = (int)HttpStatusCode.Unauthorized, Description = "API key is unknown or invalid", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
         [Display(Name = "Get", Description = "Ability to return all webchat records for a given customer.")]
-        public async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")] HttpRequest req, ILogger log, string customerId, string interactionId)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")] HttpRequest req, ILogger log, string customerId, string interactionId)
 
         {
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);

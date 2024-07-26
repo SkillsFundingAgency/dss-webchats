@@ -8,8 +8,6 @@ using DFC.HTTP.Standard;
 using DFC.JSON.Standard;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using NCS.DSS.WebChat.Cosmos.Helper;
 using DFC.Swagger.Standard.Annotations;
@@ -17,6 +15,7 @@ using NCS.DSS.WebChat.Models;
 using NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
 using Newtonsoft.Json;
+using Microsoft.Azure.Functions.Worker;
 
 namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
 {
@@ -44,7 +43,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             _validate = validate;
         }
 
-        [FunctionName("Patch")]
+        [Function("Patch")]
         [ProducesResponseType(typeof(Models.WebChat), 200)]
         [Response(HttpStatusCode = (int)HttpStatusCode.OK, Description = "WebChat Updated", ShowSchema = true)]
         [Response(HttpStatusCode = (int)HttpStatusCode.NoContent, Description = "WebChat does not exist", ShowSchema = false)]
@@ -53,7 +52,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
         [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
         [Response(HttpStatusCode = 422, Description = "WebChat validation error(s)", ShowSchema = false)]
         [Display(Name = "Patch", Description = "Ability to modify/update an webchat record.")]
-        public async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")] HttpRequest req, ILogger log, string customerId, string interactionId, string webChatId)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")] HttpRequest req, ILogger log, string customerId, string interactionId, string webChatId)
         {
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))

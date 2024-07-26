@@ -5,6 +5,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace NCS.DSS.WebChat.Helpers
 {
@@ -13,7 +15,7 @@ namespace NCS.DSS.WebChat.Helpers
 
         #region Ok(200)
 
-        public static HttpResponseMessage Ok(Guid id)
+        public static IActionResult Ok(Guid id)
         {
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -22,7 +24,7 @@ namespace NCS.DSS.WebChat.Helpers
             };
         }
 
-        public static HttpResponseMessage Ok(string resourceJson)
+        public static IActionResult Ok(string resourceJson)
         {
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -34,7 +36,7 @@ namespace NCS.DSS.WebChat.Helpers
 
         #region Created(201) 
 
-        public static HttpResponseMessage Created(string resourceJson)
+        public static IActionResult Created(string resourceJson)
         {
             return new HttpResponseMessage(HttpStatusCode.Created)
             {
@@ -46,7 +48,7 @@ namespace NCS.DSS.WebChat.Helpers
 
         #region NoContent(204)
 
-        public static HttpResponseMessage NoContent(Guid id)
+        public static IActionResult NoContent(Guid id)
         {
             return new HttpResponseMessage(HttpStatusCode.NoContent)
             {
@@ -60,12 +62,12 @@ namespace NCS.DSS.WebChat.Helpers
 
         #region BadRequest(400)
 
-        public static HttpResponseMessage BadRequest()
+        public static IActionResult BadRequest()
         {
            return new HttpResponseMessage(HttpStatusCode.BadRequest);
         }
 
-        public static HttpResponseMessage BadRequest(Guid id)
+        public static IActionResult BadRequest(Guid id)
         {
             return new HttpResponseMessage(HttpStatusCode.BadRequest)
             {
@@ -78,7 +80,7 @@ namespace NCS.DSS.WebChat.Helpers
 
         #region Forbidden(403)
 
-        public static HttpResponseMessage Forbidden(Guid id)
+        public static IActionResult Forbidden(Guid id)
         {
             return new HttpResponseMessage(HttpStatusCode.Forbidden)
             {
@@ -91,7 +93,7 @@ namespace NCS.DSS.WebChat.Helpers
 
         #region UnprocessableEntity(422)
 
-        public static HttpResponseMessage UnprocessableEntity(HttpRequestMessage req)
+        public static IActionResult UnprocessableEntity(HttpRequest req)
         {
             return new HttpResponseMessage((HttpStatusCode)422)
             {
@@ -100,7 +102,7 @@ namespace NCS.DSS.WebChat.Helpers
             };
         }
 
-        public static HttpResponseMessage UnprocessableEntity(List<ValidationResult> errors)
+        public static IActionResult UnprocessableEntity(List<ValidationResult> errors)
         {
             return new HttpResponseMessage((HttpStatusCode)422)
             {
@@ -109,7 +111,7 @@ namespace NCS.DSS.WebChat.Helpers
             };
         }
 
-        public static HttpResponseMessage UnprocessableEntity(JsonException requestException)
+        public static IActionResult UnprocessableEntity(JsonException requestException)
         {
             return new HttpResponseMessage((HttpStatusCode)422)
             {
