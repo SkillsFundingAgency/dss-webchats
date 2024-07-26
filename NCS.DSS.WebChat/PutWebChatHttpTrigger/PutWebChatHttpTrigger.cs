@@ -12,7 +12,7 @@ namespace NCS.DSS.WebChat.PutWebChatHttpTrigger
 {
     public static class PutWebChatHttpTrigger
     {
-        [Disable]
+        /*[Disable]
         [Function("Put")]
         [Display(Name = "Put", Description = "Ability to replace an entire webchat record.")]
         public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")]HttpRequest req, ILogger log, string customerId, string interactionId, string webChatId)
@@ -32,6 +32,6 @@ namespace NCS.DSS.WebChat.PutWebChatHttpTrigger
             {
                 Content = new StringContent("Replaced Web Chat record with Id of : " + webChatGuid)
             };
-        }
+        }*/
     }
 }

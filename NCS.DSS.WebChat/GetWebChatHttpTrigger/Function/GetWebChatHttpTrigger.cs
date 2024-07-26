@@ -22,18 +22,21 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
         private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
         private IJsonHelper _jsonHelper;
         private IGetWebChatHttpTriggerService _webChatGetService;
+        private ILogger log;
 
         public GetWebChatHttpTrigger(IResourceHelper resourceHelper,
             IHttpRequestHelper httpRequestMessageHelper,
             IHttpResponseMessageHelper httpResponseMessageHelper,
             IJsonHelper jsonHelper,
-            IGetWebChatHttpTriggerService webChatGetService)
+            IGetWebChatHttpTriggerService webChatGetService,
+            ILogger<GetWebChatHttpTrigger> logger)
         {
             _resourceHelper = resourceHelper;
             _httpRequestMessageHelper = httpRequestMessageHelper;
             _httpResponseMessageHelper = httpResponseMessageHelper;
             _webChatGetService = webChatGetService;
             _jsonHelper = jsonHelper;
+            log = logger;
         }
 
         [Function("Get")]
@@ -44,39 +47,39 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
         [Response(HttpStatusCode = (int)HttpStatusCode.Unauthorized, Description = "API key is unknown or invalid", ShowSchema = false)]
         [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
         [Display(Name = "Get", Description = "Ability to return all webchat records for a given customer.")]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")] HttpRequest req, ILogger log, string customerId, string interactionId)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")] HttpRequest req, string customerId, string interactionId)
 
         {
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
                 log.LogInformation("Unable to locate 'TouchpointId' in request header.");
-                return _httpResponseMessageHelper.BadRequest();
+                return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
             log.LogInformation("Get Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
-                return _httpResponseMessageHelper.BadRequest(customerGuid);
+                return new BadRequestObjectResult(customerGuid);
 
             if (!Guid.TryParse(interactionId, out var interactionGuid))
-                return _httpResponseMessageHelper.BadRequest(interactionGuid);
+                return new BadRequestObjectResult(interactionGuid);
 
             var doesCustomerExist = await _resourceHelper.DoesCustomerExist(customerGuid);
 
             if (!doesCustomerExist)
-                return _httpResponseMessageHelper.NoContent(customerGuid);
+                return new NoContentResult();
 
             var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
-                return _httpResponseMessageHelper.NoContent(interactionGuid);
+                return new NoContentResult();
 
             var webChats = await _webChatGetService.GetWebChatsForCustomerAsync(customerGuid, interactionGuid);
 
             return webChats == null ?
-                _httpResponseMessageHelper.NoContent(customerGuid) :
-                _httpResponseMessageHelper.Ok(_jsonHelper.SerializeObjectsAndRenameIdProperty(webChats, "id", "WebChatId"));
+                new NoContentResult() :
+                new OkObjectResult(_jsonHelper.SerializeObjectsAndRenameIdProperty(webChats, "id", "WebChatId"));
         }
     }
 }

@@ -27,13 +27,15 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
         private IValidate _validate;
         private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
         private IJsonHelper _jsonHelper;
+        private ILogger log;
 
         public PatchWebChatHttpTrigger(IResourceHelper resourceHelper,
         IHttpRequestHelper httpRequestMessageHelper,
         IHttpResponseMessageHelper httpResponseMessageHelper,
         IJsonHelper jsonHelper,
         IValidate validate,
-        IPatchWebChatHttpTriggerService webChatPatchService)
+        IPatchWebChatHttpTriggerService webChatPatchService,
+        ILogger<PatchWebChatHttpTrigger> logger)
         {
             _resourceHelper = resourceHelper;
             _httpRequestMessageHelper = httpRequestMessageHelper;
@@ -41,6 +43,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             _webChatPatchService = webChatPatchService;
             _jsonHelper = jsonHelper;
             _validate = validate;
+            log = logger;
         }
 
         [Function("Patch")]
@@ -52,32 +55,32 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
         [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
         [Response(HttpStatusCode = 422, Description = "WebChat validation error(s)", ShowSchema = false)]
         [Display(Name = "Patch", Description = "Ability to modify/update an webchat record.")]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")] HttpRequest req, ILogger log, string customerId, string interactionId, string webChatId)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")] HttpRequest req, string customerId, string interactionId, string webChatId)
         {
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
                 log.LogInformation("Unable to locate 'TouchpointId' in request header.");
-                return _httpResponseMessageHelper.BadRequest();
+                return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
             var ApimURL = _httpRequestMessageHelper.GetDssApimUrl(req);
             if (string.IsNullOrEmpty(ApimURL))
             {
                 log.LogInformation("Unable to locate 'apimurl' in request header");
-                return _httpResponseMessageHelper.BadRequest();
+                return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
             log.LogInformation("Patch Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
-                return _httpResponseMessageHelper.BadRequest(customerGuid);
+                return new BadRequestObjectResult(customerGuid);
 
             if (!Guid.TryParse(interactionId, out var interactionGuid))
-                return _httpResponseMessageHelper.BadRequest(interactionGuid);
+                return new BadRequestObjectResult(interactionGuid);
 
             if (!Guid.TryParse(webChatId, out var webChatGuid))
-                return _httpResponseMessageHelper.BadRequest(webChatGuid);
+                return new BadRequestObjectResult(webChatGuid);
 
             WebChatPatch webChatPatchRequest;
 
@@ -87,11 +90,11 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             }
             catch (JsonException ex)
             {
-                return _httpResponseMessageHelper.UnprocessableEntity(ex);
+                return new UnprocessableEntityObjectResult(ex);
             }
 
             if (webChatPatchRequest == null)
-                return _httpResponseMessageHelper.UnprocessableEntity(req);
+                return new UnprocessableEntityObjectResult(req);
 
             webChatPatchRequest.LastModifiedTouchpointId = touchpointId;
             webChatPatchRequest.SetDefaultValues();
@@ -99,27 +102,27 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             var errors = _validate.ValidateResource(webChatPatchRequest, false);
 
             if (errors != null && errors.Any())
-                return _httpResponseMessageHelper.UnprocessableEntity(errors);
+                return new UnprocessableEntityObjectResult(errors);
 
             var doesCustomerExist = await _resourceHelper.DoesCustomerExist(customerGuid);
 
             if (!doesCustomerExist)
-                return _httpResponseMessageHelper.NoContent(customerGuid);
+                return new NoContentResult();
 
             var isCustomerReadOnly = await _resourceHelper.IsCustomerReadOnly(customerGuid);
 
             if (isCustomerReadOnly)
-                return _httpResponseMessageHelper.Forbidden(customerGuid);
+                return new ForbidResult();
 
             var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
-                return _httpResponseMessageHelper.NoContent(interactionGuid);
+                return new NoContentResult();
 
             var webChat = await _webChatPatchService.GetWebChatForCustomerAsync(customerGuid, interactionGuid, webChatGuid);
 
             if (webChat == null)
-                return _httpResponseMessageHelper.NoContent(webChatGuid);
+                return new NoContentResult();
 
             var updatedWebChat = await _webChatPatchService.UpdateAsync(webChat, webChatPatchRequest);
 
@@ -127,8 +130,8 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
                 await _webChatPatchService.SendToServiceBusQueueAsync(updatedWebChat, customerGuid, ApimURL);
 
             return updatedWebChat == null ?
-                _httpResponseMessageHelper.BadRequest(webChatGuid) :
-                _httpResponseMessageHelper.Ok(_jsonHelper.SerializeObjectAndRenameIdProperty(updatedWebChat, "id", "WebChatId"));
+                new BadRequestObjectResult(webChatGuid) :
+                new OkObjectResult(_jsonHelper.SerializeObjectAndRenameIdProperty(updatedWebChat, "id", "WebChatId"));
         }
     }
 }

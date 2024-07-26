@@ -26,13 +26,15 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
         private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
         private IJsonHelper _jsonHelper;
         private IPostWebChatHttpTriggerService _webChatPostService;
+        private ILogger log;
 
         public PostWebChatHttpTrigger(IResourceHelper resourceHelper,
             IHttpRequestHelper httpRequestMessageHelper,
             IHttpResponseMessageHelper httpResponseMessageHelper,
             IJsonHelper jsonHelper,
             IValidate validate,
-            IPostWebChatHttpTriggerService webChatPostService)
+            IPostWebChatHttpTriggerService webChatPostService,
+            ILogger<PostWebChatHttpTrigger> logger)
         {
             _resourceHelper = resourceHelper;
             _httpRequestMessageHelper = httpRequestMessageHelper;
@@ -40,6 +42,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
             _webChatPostService = webChatPostService;
             _jsonHelper = jsonHelper;
             _validate = validate;
+            log = logger;
         }
 
         [Function("Post")]
@@ -51,29 +54,29 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
         [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
         [Response(HttpStatusCode = 422, Description = "WebChat validation error(s)", ShowSchema = false)]
         [Display(Name = "Post", Description = "Ability to create a new webchat resource.")]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")] HttpRequest req, ILogger log, string customerId, string interactionId)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")] HttpRequest req, string customerId, string interactionId)
         {
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
                 log.LogInformation("Unable to locate 'TouchpointId' in request header.");
-                return _httpResponseMessageHelper.BadRequest();
+                return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
             var ApimURL = _httpRequestMessageHelper.GetDssApimUrl(req);
             if (string.IsNullOrEmpty(ApimURL))
             {
                 log.LogInformation("Unable to locate 'apimurl' in request header");
-                return _httpResponseMessageHelper.BadRequest();
+                return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
             log.LogInformation("Post Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
-                return _httpResponseMessageHelper.BadRequest(customerGuid);
+                return new BadRequestObjectResult(customerGuid);
 
             if (!Guid.TryParse(interactionId, out var interactionGuid))
-                return _httpResponseMessageHelper.BadRequest(interactionGuid);
+                return new BadRequestObjectResult(interactionGuid);
 
             Models.WebChat webChatRequest;
 
@@ -83,33 +86,33 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
             }
             catch (JsonException ex)
             {
-                return _httpResponseMessageHelper.UnprocessableEntity(ex);
+                return new UnprocessableEntityObjectResult(ex);
             }
 
             if (webChatRequest == null)
-                return _httpResponseMessageHelper.UnprocessableEntity(req);
+                return new UnprocessableEntityObjectResult(req);
 
             webChatRequest.SetIds(customerGuid, interactionGuid, touchpointId);
 
             var errors = _validate.ValidateResource(webChatRequest, true);
 
             if (errors != null && errors.Any())
-                return _httpResponseMessageHelper.UnprocessableEntity(errors);
+                return new UnprocessableEntityObjectResult(errors);
 
             var doesCustomerExist = await _resourceHelper.DoesCustomerExist(customerGuid);
 
             if (!doesCustomerExist)
-                return _httpResponseMessageHelper.NoContent(customerGuid);
+                return new NoContentResult();
 
             var isCustomerReadOnly = await _resourceHelper.IsCustomerReadOnly(customerGuid);
 
             if (isCustomerReadOnly)
-                return _httpResponseMessageHelper.Forbidden(customerGuid);
+                return new ForbidResult();
 
             var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
-                return _httpResponseMessageHelper.NoContent(interactionGuid);
+                return new NoContentResult();
 
             var webChat = await _webChatPostService.CreateAsync(webChatRequest);
 
@@ -117,8 +120,11 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
                 await _webChatPostService.SendToServiceBusQueueAsync(webChat, ApimURL);
 
             return webChat == null
-                ? _httpResponseMessageHelper.BadRequest(customerGuid)
-                : _httpResponseMessageHelper.Created(_jsonHelper.SerializeObjectAndRenameIdProperty(webChat, "id", "WebChatId"));
+                ? new BadRequestObjectResult(customerGuid)
+                : new ObjectResult(_jsonHelper.SerializeObjectAndRenameIdProperty(webChat, "id", "WebChatId"))
+                {
+                    StatusCode = StatusCodes.Status201Created
+                }; ;
         }
     }
 }
