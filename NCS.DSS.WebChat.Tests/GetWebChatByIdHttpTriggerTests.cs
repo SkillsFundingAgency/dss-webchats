@@ -7,9 +7,10 @@ using NCS.DSS.WebChat.Cosmos.Helper;
 using NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Service;
 using Moq;
 using NUnit.Framework;
-using Microsoft.AspNetCore.Http.Internal;
 using DFC.HTTP.Standard;
 using DFC.JSON.Standard;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace NCS.DSS.WebChat.Tests
 {
@@ -23,8 +24,7 @@ namespace NCS.DSS.WebChat.Tests
         private const string InValidId = "1111111-2222-3333-4444-555555555555";
 
         //private HttpRequestMessage _request;
-        private Mock<ILogger> _log;
-        private DefaultHttpRequest _request;
+        private HttpRequest _request;
         private Mock<IResourceHelper> _resourceHelper;
         private Mock<IHttpRequestHelper> _httpRequestMessageHelper;
         private Mock<IGetWebChatByIdHttpTriggerService> _getWebChatByIdHttpTriggerService;
@@ -32,14 +32,15 @@ namespace NCS.DSS.WebChat.Tests
         private GetWebChatByIdHttpTrigger.Function.GetWebChatByIdHttpTrigger function;
         private IHttpResponseMessageHelper _httpResponseMessageHelper;
         private IJsonHelper _jsonHelper;
+        private Mock<ILogger<GetWebChatByIdHttpTrigger.Function.GetWebChatByIdHttpTrigger>> _log;
 
         [SetUp]
         public void Setup()
         {
             _webChat = new Models.WebChat();
 
-            _request = null;
-            _log = new Mock<ILogger>();
+            _request = new DefaultHttpContext().Request;
+            _log = new Mock<ILogger<GetWebChatByIdHttpTrigger.Function.GetWebChatByIdHttpTrigger>>();
             _resourceHelper = new Mock<IResourceHelper>();
             _getWebChatByIdHttpTriggerService = new Mock<IGetWebChatByIdHttpTriggerService>();
             _httpRequestMessageHelper = new Mock<IHttpRequestHelper>();
@@ -47,7 +48,7 @@ namespace NCS.DSS.WebChat.Tests
             _jsonHelper = new JsonHelper();
 
             function = new GetWebChatByIdHttpTrigger.Function.GetWebChatByIdHttpTrigger(_resourceHelper.Object,
-                _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, _getWebChatByIdHttpTriggerService.Object);
+                _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, _getWebChatByIdHttpTriggerService.Object, _log.Object);
         }
 
         [Test]
@@ -60,8 +61,7 @@ namespace NCS.DSS.WebChat.Tests
             var result = await RunFunction(InValidId, ValidInteractionId, ValidWebChatId);
 
             // Assert
-            Assert.IsInstanceOf<HttpResponseMessage>(result);
-            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
         }
 
         [Test]
@@ -71,8 +71,7 @@ namespace NCS.DSS.WebChat.Tests
             var result = await RunFunction(InValidId, ValidInteractionId, ValidWebChatId);
 
             // Assert
-            Assert.IsInstanceOf<HttpResponseMessage>(result);
-            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
         }
 
         [Test]
@@ -82,8 +81,7 @@ namespace NCS.DSS.WebChat.Tests
             var result = await RunFunction(ValidCustomerId, InValidId, ValidWebChatId);
 
             // Assert
-            Assert.IsInstanceOf<HttpResponseMessage>(result);
-            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
         }
 
         [Test]
@@ -93,8 +91,7 @@ namespace NCS.DSS.WebChat.Tests
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, InValidId);
 
             // Assert
-            Assert.IsInstanceOf<HttpResponseMessage>(result);
-            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
         }
 
         [Test]
@@ -108,8 +105,7 @@ namespace NCS.DSS.WebChat.Tests
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
             // Assert
-            Assert.IsInstanceOf<HttpResponseMessage>(result);
-            Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
+            Assert.That(result, Is.InstanceOf<NoContentResult>());
         }
 
         [Test]
@@ -124,8 +120,7 @@ namespace NCS.DSS.WebChat.Tests
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
             // Assert
-            Assert.IsInstanceOf<HttpResponseMessage>(result);
-            Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
+            Assert.That(result, Is.InstanceOf<NoContentResult>());
         }
 
         [Test]
@@ -142,8 +137,7 @@ namespace NCS.DSS.WebChat.Tests
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
             // Assert
-            Assert.IsInstanceOf<HttpResponseMessage>(result);
-            Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
+            Assert.That(result, Is.InstanceOf<NoContentResult>());
         }
 
         [Test]
@@ -159,14 +153,13 @@ namespace NCS.DSS.WebChat.Tests
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
 
             // Assert
-            Assert.IsInstanceOf<HttpResponseMessage>(result);
-            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result, Is.InstanceOf<OkObjectResult>());
         }
 
-        private async Task<HttpResponseMessage> RunFunction(string customerId, string interactionId, string actionPlanId)
+        private async Task<IActionResult> RunFunction(string customerId, string interactionId, string actionPlanId)
         {
             return await function.Run(
-                _request, _log.Object, customerId, interactionId, actionPlanId).ConfigureAwait(false);
+                _request, customerId, interactionId, actionPlanId).ConfigureAwait(false);
         }
     }
 }
