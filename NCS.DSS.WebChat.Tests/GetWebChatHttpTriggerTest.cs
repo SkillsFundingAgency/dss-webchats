@@ -135,10 +135,11 @@ namespace NCS.DSS.WebChat.Tests
             var listOfWebChates = new List<Models.WebChat>();
             _getWebChatHttpTriggerService.Setup(x => x.GetWebChatsForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<List<Models.WebChat>>(listOfWebChates));
             // Act
-            var result = await RunFunction(ValidCustomerId, ValidInteractionId);
+            var result = await RunFunction(ValidCustomerId, ValidInteractionId); var responseResult = result as JsonResult;
 
-            // Assert
-            Assert.That(result, Is.InstanceOf<OkObjectResult>());
+            //Assert
+            Assert.That(result, Is.InstanceOf<JsonResult>());
+            Assert.That(responseResult.StatusCode, Is.EqualTo((int)HttpStatusCode.OK));
         }
 
         private async Task<IActionResult> RunFunction(string customerId, string interactionId)

@@ -197,13 +197,11 @@ namespace NCS.DSS.WebChat.Tests
             _postWebChatHttpTriggerService.Setup(x => x.CreateAsync(It.IsAny<Models.WebChat>())).Returns(Task.FromResult<Models.WebChat>(_webChat));
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId);
+            var responseResult = result as JsonResult;
 
-            // Assert
-            Assert.That(result, Is.InstanceOf<ObjectResult>());
-
-            var objectResult = result as ObjectResult;
-
-            Assert.That(objectResult.StatusCode, Is.EqualTo(201));
+            //Assert
+            Assert.That(result, Is.InstanceOf<JsonResult>());
+            Assert.That(responseResult.StatusCode, Is.EqualTo((int)HttpStatusCode.Created));
         }
 
         private async Task<IActionResult> RunFunction(string customerId, string interactionId)

@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using NCS.DSS.WebChat.Cosmos.Helper;
 using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
 using Microsoft.Azure.Functions.Worker;
+using System.Text.Json;
 
 namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
 {
@@ -79,7 +80,14 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
 
             return webChats == null ?
                 new NoContentResult() :
-                new OkObjectResult(_jsonHelper.SerializeObjectsAndRenameIdProperty(webChats, "id", "WebChatId"));
+                webChats.Count == 1 ? new JsonResult(webChats[0], new JsonSerializerOptions())
+                    {
+                        StatusCode = (int)HttpStatusCode.OK
+                    } : 
+                    new JsonResult(webChats, new JsonSerializerOptions())
+                    {
+                        StatusCode = (int)HttpStatusCode.OK
+                    };
         }
     }
 }

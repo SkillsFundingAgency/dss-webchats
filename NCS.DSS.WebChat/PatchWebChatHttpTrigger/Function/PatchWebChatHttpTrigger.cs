@@ -16,6 +16,7 @@ using NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
 using Newtonsoft.Json;
 using Microsoft.Azure.Functions.Worker;
+using System.Text.Json;
 
 namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
 {
@@ -88,7 +89,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             {
                 webChatPatchRequest = await _httpRequestMessageHelper.GetResourceFromRequest<Models.WebChatPatch>(req);
             }
-            catch (JsonException ex)
+            catch (Newtonsoft.Json.JsonException ex)
             {
                 return new UnprocessableEntityObjectResult(ex);
             }
@@ -131,7 +132,10 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
 
             return updatedWebChat == null ?
                 new BadRequestObjectResult(webChatGuid) :
-                new OkObjectResult(_jsonHelper.SerializeObjectAndRenameIdProperty(updatedWebChat, "id", "WebChatId"));
+                new JsonResult(updatedWebChat, new JsonSerializerOptions())
+                {
+                    StatusCode = (int)HttpStatusCode.OK
+                };
         }
     }
 }
