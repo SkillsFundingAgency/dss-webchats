@@ -23,7 +23,6 @@ namespace NCS.DSS.WebChat.Tests
         private const string ValidWebChatId = "d5369b9a-6959-4bd3-92fc-1583e72b7e51";
         private const string InValidId = "1111111-2222-3333-4444-555555555555";
 
-        //private HttpRequestMessage _request;
         private HttpRequest _request;
         private Mock<IResourceHelper> _resourceHelper;
         private Mock<IHttpRequestHelper> _httpRequestMessageHelper;
