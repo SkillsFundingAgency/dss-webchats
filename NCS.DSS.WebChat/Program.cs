@@ -23,6 +23,7 @@ var host = new HostBuilder()
         services.AddTransient<IResourceHelper, ResourceHelper>();
         services.AddTransient<IValidate, Validate>();
         services.AddTransient<IHttpRequestHelper, HttpRequestHelper>();
+        services.AddTransient<IHttpResponseMessageHelper, HttpResponseMessageHelper>();
         services.AddTransient<IJsonHelper, JsonHelper>();
     })
     .Build();
