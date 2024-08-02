@@ -17,6 +17,7 @@ using NCS.DSS.WebChat.Validation;
 using Newtonsoft.Json;
 using Microsoft.Azure.Functions.Worker;
 using System.Text.Json;
+using NCS.DSS.WebChat.Helpers;
 
 namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
 {
@@ -29,6 +30,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
         private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
         private IJsonHelper _jsonHelper;
         private ILogger log;
+        private readonly IDynamicHelper _dynamicHelper;
 
         public PatchWebChatHttpTrigger(IResourceHelper resourceHelper,
         IHttpRequestHelper httpRequestMessageHelper,
@@ -36,7 +38,8 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
         IJsonHelper jsonHelper,
         IValidate validate,
         IPatchWebChatHttpTriggerService webChatPatchService,
-        ILogger<PatchWebChatHttpTrigger> logger)
+        ILogger<PatchWebChatHttpTrigger> logger,
+        IDynamicHelper dynamicHelper)
         {
             _resourceHelper = resourceHelper;
             _httpRequestMessageHelper = httpRequestMessageHelper;
@@ -45,6 +48,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             _jsonHelper = jsonHelper;
             _validate = validate;
             log = logger;
+            _dynamicHelper = dynamicHelper;
         }
 
         [Function("Patch")]
@@ -89,9 +93,9 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             {
                 webChatPatchRequest = await _httpRequestMessageHelper.GetResourceFromRequest<Models.WebChatPatch>(req);
             }
-            catch (Newtonsoft.Json.JsonException ex)
+            catch (Exception ex)
             {
-                return new UnprocessableEntityObjectResult(ex);
+                return new UnprocessableEntityObjectResult(_dynamicHelper.ExcludeProperty(ex, ["TargetSite"]));
             }
 
             if (webChatPatchRequest == null)

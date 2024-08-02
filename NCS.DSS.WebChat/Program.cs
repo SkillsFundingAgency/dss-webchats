@@ -9,6 +9,7 @@ using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.PostWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
+using NCS.DSS.WebChat.Helpers;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
@@ -24,7 +25,8 @@ var host = new HostBuilder()
         services.AddTransient<IValidate, Validate>();
         services.AddTransient<IHttpRequestHelper, HttpRequestHelper>();
         services.AddTransient<IHttpResponseMessageHelper, HttpResponseMessageHelper>();
-        services.AddTransient<IJsonHelper, JsonHelper>();
+        services.AddTransient<IJsonHelper, DFC.JSON.Standard.JsonHelper>();
+        services.AddSingleton<IDynamicHelper, DynamicHelper>();
     })
     .Build();
 

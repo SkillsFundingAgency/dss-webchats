@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NCS.DSS.WebChat.Helpers;
 
 namespace NCS.DSS.WebChat.Tests
 {
@@ -36,6 +37,7 @@ namespace NCS.DSS.WebChat.Tests
         private IHttpResponseMessageHelper _httpResponseMessageHelper;
         private IJsonHelper _jsonHelper;
         private Mock<IValidate> _validate;
+        private Mock<IDynamicHelper> _dynamicHelper;
 
         [SetUp]
         public void Setup()
@@ -49,10 +51,11 @@ namespace NCS.DSS.WebChat.Tests
             _postWebChatHttpTriggerService = new Mock<IPostWebChatHttpTriggerService>();
             _httpRequestMessageHelper = new Mock<IHttpRequestHelper>();
             _httpResponseMessageHelper = new HttpResponseMessageHelper();
-            _jsonHelper = new JsonHelper();
+            _jsonHelper = new DFC.JSON.Standard.JsonHelper();
+            _dynamicHelper = new Mock<IDynamicHelper>();
 
             function = new PostWebChatHttpTrigger.Function.PostWebChatHttpTrigger(_resourceHelper.Object,
-                _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, _validate.Object, _postWebChatHttpTriggerService.Object, _log.Object);
+                _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, _validate.Object, _postWebChatHttpTriggerService.Object, _log.Object, _dynamicHelper.Object);
         }
 
         [Test]

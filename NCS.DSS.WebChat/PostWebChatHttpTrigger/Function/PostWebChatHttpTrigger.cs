@@ -16,6 +16,7 @@ using NCS.DSS.WebChat.Validation;
 using Newtonsoft.Json;
 using Microsoft.Azure.Functions.Worker;
 using System.Text.Json;
+using NCS.DSS.WebChat.Helpers;
 
 namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
 {
@@ -28,6 +29,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
         private IJsonHelper _jsonHelper;
         private IPostWebChatHttpTriggerService _webChatPostService;
         private ILogger log;
+        private IDynamicHelper _dynamicHelper;
 
         public PostWebChatHttpTrigger(IResourceHelper resourceHelper,
             IHttpRequestHelper httpRequestMessageHelper,
@@ -35,7 +37,8 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
             IJsonHelper jsonHelper,
             IValidate validate,
             IPostWebChatHttpTriggerService webChatPostService,
-            ILogger<PostWebChatHttpTrigger> logger)
+            ILogger<PostWebChatHttpTrigger> logger,
+            IDynamicHelper dynamicHelper)
         {
             _resourceHelper = resourceHelper;
             _httpRequestMessageHelper = httpRequestMessageHelper;
@@ -44,6 +47,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
             _jsonHelper = jsonHelper;
             _validate = validate;
             log = logger;
+            _dynamicHelper = dynamicHelper;
         }
 
         [Function("Post")]
@@ -68,7 +72,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
             if (string.IsNullOrEmpty(ApimURL))
             {
                 log.LogInformation("Unable to locate 'apimurl' in request header");
-                return new BadRequestObjectResult(HttpStatusCode.BadRequest);
+                //return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
             log.LogInformation("Post Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
@@ -87,7 +91,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
             }
             catch (Newtonsoft.Json.JsonException ex)
             {
-                return new UnprocessableEntityObjectResult(ex);
+                return new UnprocessableEntityObjectResult(_dynamicHelper.ExcludeProperty(ex, ["TargetSite"]));
             }
 
             if (webChatRequest == null)
