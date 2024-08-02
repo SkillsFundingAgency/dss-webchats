@@ -117,7 +117,10 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             var isCustomerReadOnly = await _resourceHelper.IsCustomerReadOnly(customerGuid);
 
             if (isCustomerReadOnly)
-                return new ForbidResult();
+                return new ObjectResult(customerGuid)
+                {
+                    StatusCode = (int)HttpStatusCode.Forbidden
+                };
 
             var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
 
