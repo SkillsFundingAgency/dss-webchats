@@ -89,7 +89,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
             {
                 webChatRequest = await _httpRequestMessageHelper.GetResourceFromRequest<Models.WebChat>(req);
             }
-            catch (Newtonsoft.Json.JsonException ex)
+            catch (Exception ex)
             {
                 return new UnprocessableEntityObjectResult(_dynamicHelper.ExcludeProperty(ex, ["TargetSite"]));
             }
