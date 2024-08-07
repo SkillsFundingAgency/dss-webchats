@@ -1,11 +1,11 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2018
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NCS.DSS.WebChat", "NCS.DSS.WebChat\NCS.DSS.WebChat.csproj", "{0FD61C2E-B538-4370-AD68-EE16B2E04725}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NCS.DSS.WebChat.Tests", "NCS.DSS.WebChat.Tests\NCS.DSS.WebChat.Tests.csproj", "{3D3661F2-BB1C-4484-8E15-086BA2A38F89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NCS.DSS.WebChat.Tests", "NCS.DSS.WebChat.Tests\NCS.DSS.WebChat.Tests.csproj", "{3D3661F2-BB1C-4484-8E15-086BA2A38F89}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
