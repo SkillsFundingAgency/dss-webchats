@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace NCS.DSS.WebChat.Helpers
@@ -30,9 +28,9 @@ namespace NCS.DSS.WebChat.Helpers
 
             foreach (var jToken in tokens)
             {
-                var item = (JObject) jToken;
+                var item = (JObject)jToken;
 
-                if(item == null) 
+                if (item == null)
                     continue;
 
                 var prop = item.Property("id");

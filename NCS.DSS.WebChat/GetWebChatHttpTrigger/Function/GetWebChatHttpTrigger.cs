@@ -1,17 +1,14 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-using DFC.Swagger.Standard.Annotations;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using DFC.HTTP.Standard;
 using DFC.JSON.Standard;
+using DFC.Swagger.Standard.Annotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NCS.DSS.WebChat.Cosmos.Helper;
 using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
-using Microsoft.Azure.Functions.Worker;
+using System.ComponentModel.DataAnnotations;
+using System.Net;
 using System.Text.Json;
 
 namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
@@ -81,9 +78,9 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
             return webChats == null ?
                 new NoContentResult() :
                 webChats.Count == 1 ? new JsonResult(webChats[0], new JsonSerializerOptions())
-                    {
-                        StatusCode = (int)HttpStatusCode.OK
-                    } : 
+                {
+                    StatusCode = (int)HttpStatusCode.OK
+                } :
                     new JsonResult(webChats, new JsonSerializerOptions())
                     {
                         StatusCode = (int)HttpStatusCode.OK

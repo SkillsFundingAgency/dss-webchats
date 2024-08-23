@@ -1,13 +1,3 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Net;
-using System.Net.Http;
-using Newtonsoft.Json;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
 namespace NCS.DSS.WebChat.PutWebChatHttpTrigger
 {
     public static class PutWebChatHttpTrigger

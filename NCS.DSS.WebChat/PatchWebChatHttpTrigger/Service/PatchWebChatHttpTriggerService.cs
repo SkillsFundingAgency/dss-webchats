@@ -1,9 +1,7 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-using NCS.DSS.WebChat.Cosmos.Provider;
+﻿using NCS.DSS.WebChat.Cosmos.Provider;
 using NCS.DSS.WebChat.Models;
 using NCS.DSS.WebChat.ServiceBus;
+using System.Net;
 
 namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service
 {

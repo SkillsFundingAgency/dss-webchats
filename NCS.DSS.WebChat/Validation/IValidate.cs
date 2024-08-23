@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using NCS.DSS.WebChat.Models;
 using System.ComponentModel.DataAnnotations;
-using NCS.DSS.WebChat.Models;
 
 namespace NCS.DSS.WebChat.Validation
 {

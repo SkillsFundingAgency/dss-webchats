@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace NCS.DSS.WebChat.Models
+﻿namespace NCS.DSS.WebChat.Models
 {
     public interface IWebChat
     {

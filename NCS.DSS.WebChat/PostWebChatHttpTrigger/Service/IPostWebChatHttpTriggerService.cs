@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Service
+﻿namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Service
 {
     public interface IPostWebChatHttpTriggerService
     {

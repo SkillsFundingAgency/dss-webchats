@@ -1,22 +1,17 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using DFC.HTTP.Standard;
 using DFC.JSON.Standard;
+using DFC.Swagger.Standard.Annotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NCS.DSS.WebChat.Cosmos.Helper;
-using DFC.Swagger.Standard.Annotations;
+using NCS.DSS.WebChat.Helpers;
 using NCS.DSS.WebChat.PostWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
-using Newtonsoft.Json;
-using Microsoft.Azure.Functions.Worker;
+using System.ComponentModel.DataAnnotations;
+using System.Net;
 using System.Text.Json;
-using NCS.DSS.WebChat.Helpers;
 
 namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
 {
@@ -111,7 +106,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
 
             var isCustomerReadOnly = await _resourceHelper.IsCustomerReadOnly(customerGuid);
 
-            if (isCustomerReadOnly) 
+            if (isCustomerReadOnly)
                 return new ObjectResult(customerGuid)
                 {
                     StatusCode = (int)HttpStatusCode.Forbidden

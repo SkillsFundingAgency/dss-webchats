@@ -1,17 +1,16 @@
-﻿using System;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Cosmos.Helper;
-using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
-using Moq;
-using NUnit.Framework;
-using DFC.HTTP.Standard;
+﻿using DFC.HTTP.Standard;
 using DFC.JSON.Standard;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Moq;
+using NCS.DSS.WebChat.Cosmos.Helper;
+using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace NCS.DSS.WebChat.Tests
 {

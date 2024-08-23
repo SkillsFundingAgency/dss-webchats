@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using NCS.DSS.WebChat.Cosmos.Provider;
+﻿using NCS.DSS.WebChat.Cosmos.Provider;
 
 namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Service
 {
