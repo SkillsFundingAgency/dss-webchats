@@ -1,16 +1,15 @@
-﻿using System;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Cosmos.Helper;
-using NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Service;
-using Moq;
-using NUnit.Framework;
-using DFC.HTTP.Standard;
+﻿using DFC.HTTP.Standard;
 using DFC.JSON.Standard;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Moq;
+using NCS.DSS.WebChat.Cosmos.Helper;
+using NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Service;
+using NUnit.Framework;
+using System;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace NCS.DSS.WebChat.Tests
 {
@@ -130,7 +129,7 @@ namespace NCS.DSS.WebChat.Tests
             _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
             _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(true);
 
-            _getWebChatByIdHttpTriggerService.Setup(x=> x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(null));
+            _getWebChatByIdHttpTriggerService.Setup(x => x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(null));
 
             // Act
             var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);

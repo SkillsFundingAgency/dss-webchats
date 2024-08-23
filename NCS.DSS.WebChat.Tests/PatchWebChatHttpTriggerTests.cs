@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using DFC.HTTP.Standard;
+﻿using DFC.HTTP.Standard;
 using DFC.JSON.Standard;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NCS.DSS.WebChat.Cosmos.Helper;
+using NCS.DSS.WebChat.Helpers;
 using NCS.DSS.WebChat.Models;
 using NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using NCS.DSS.WebChat.Helpers;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace NCS.DSS.WebChat.Tests
 {
@@ -108,7 +107,7 @@ namespace NCS.DSS.WebChat.Tests
             // Arrange
             var validate = new Mock<IValidate>();
             var validationResults = new List<ValidationResult> { new ValidationResult("interaction Id is Required") };
-            validate.Setup(x => x.ValidateResource(It.IsAny<Models.WebChatPatch>(),false)).Returns(validationResults);
+            validate.Setup(x => x.ValidateResource(It.IsAny<Models.WebChatPatch>(), false)).Returns(validationResults);
             function = new PatchWebChatHttpTrigger.Function.PatchWebChatHttpTrigger(_resourceHelper.Object, _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, validate.Object, _patchWebChatHttpTriggerService.Object, _log.Object, _dynamicHelper.Object);
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
@@ -185,7 +184,7 @@ namespace NCS.DSS.WebChat.Tests
             // Assert
             Assert.That(result, Is.InstanceOf<NoContentResult>());
         }
-        
+
         [Test]
         public async Task PatchWebChatHttpTrigger_ReturnsStatusCodeOk_WhenWebChatDoesNotExist()
         {
@@ -251,7 +250,7 @@ namespace NCS.DSS.WebChat.Tests
             _patchWebChatHttpTriggerService.Setup(x => x.GetWebChatForCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult<Models.WebChat>(_webChat));
             _patchWebChatHttpTriggerService.Setup(x => x.UpdateAsync(It.IsAny<Models.WebChat>(), It.IsAny<Models.WebChatPatch>())).Returns(Task.FromResult<Models.WebChat>(_webChat));
 
-            var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId); 
+            var result = await RunFunction(ValidCustomerId, ValidInteractionId, ValidWebChatId);
             var responseResult = result as JsonResult;
 
             //Assert
