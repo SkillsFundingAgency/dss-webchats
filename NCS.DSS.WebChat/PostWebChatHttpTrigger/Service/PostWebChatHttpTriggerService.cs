@@ -1,8 +1,6 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-using NCS.DSS.WebChat.Cosmos.Provider;
+﻿using NCS.DSS.WebChat.Cosmos.Provider;
 using NCS.DSS.WebChat.ServiceBus;
+using System.Net;
 
 namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Service
 {
@@ -13,7 +11,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Service
             if (webChat == null)
                 return null;
 
-           webChat.SetDefaultValues();
+            webChat.SetDefaultValues();
 
             var documentDbProvider = new DocumentDBProvider();
 

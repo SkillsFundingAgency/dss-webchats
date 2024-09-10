@@ -1,7 +1,4 @@
-﻿
-using System;
-using System.Configuration;
-using Microsoft.Azure.Documents.Client;
+﻿using Microsoft.Azure.Documents.Client;
 
 namespace NCS.DSS.WebChat.Cosmos.Helper
 {
@@ -30,7 +27,7 @@ namespace NCS.DSS.WebChat.Cosmos.Helper
 
             return _documentCollectionUri;
         }
-        
+
         public static Uri CreateDocumentUri(Guid webchatId)
         {
             return UriFactory.CreateDocumentUri(DatabaseId, CollectionId, webchatId.ToString());

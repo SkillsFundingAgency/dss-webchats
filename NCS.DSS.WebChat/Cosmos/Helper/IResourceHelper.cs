@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace NCS.DSS.WebChat.Cosmos.Helper
+﻿namespace NCS.DSS.WebChat.Cosmos.Helper
 {
     public interface IResourceHelper
     {

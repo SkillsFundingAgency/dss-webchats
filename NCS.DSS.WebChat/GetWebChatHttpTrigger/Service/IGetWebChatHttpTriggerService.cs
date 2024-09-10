@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Service
+﻿namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Service
 {
     public interface IGetWebChatHttpTriggerService
     {
