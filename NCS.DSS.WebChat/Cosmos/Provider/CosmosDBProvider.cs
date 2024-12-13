@@ -19,7 +19,7 @@ namespace NCS.DSS.WebChat.Cosmos.Provider
         {
             _container = GetContainer(cosmosClient, configOptions.Value.DatabaseId, configOptions.Value.CollectionId);
             _customerContainer = GetContainer(cosmosClient, configOptions.Value.CustomerDatabaseId, configOptions.Value.CustomerCollectionId);
-            _interactionContainer = GetContainer(cosmosClient, configOptions.Value.CustomerDatabaseId, configOptions.Value.CustomerCollectionId);
+            _interactionContainer = GetContainer(cosmosClient, configOptions.Value.InteractionDatabaseId, configOptions.Value.InteractionCollectionId);
             _logger = logger;
         }
         private static Container GetContainer(CosmosClient cosmosClient, string databaseId, string collectionId)
