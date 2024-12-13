@@ -1,11 +1,10 @@
 using DFC.HTTP.Standard;
-using DFC.JSON.Standard;
 using DFC.Swagger.Standard.Annotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Cosmos.Helper;
+using NCS.DSS.WebChat.Cosmos.Provider;
 using NCS.DSS.WebChat.Helpers;
 using NCS.DSS.WebChat.Models;
 using NCS.DSS.WebChat.PatchWebChatHttpTrigger.Service;
@@ -18,31 +17,25 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
 {
     public class PatchWebChatHttpTrigger
     {
-        private IResourceHelper _resourceHelper;
-        private IHttpRequestHelper _httpRequestMessageHelper;
-        private IPatchWebChatHttpTriggerService _webChatPatchService;
-        private IValidate _validate;
-        private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
-        private IJsonHelper _jsonHelper;
-        private ILogger log;
+        private readonly ICosmosDBProvider _cosmosDbProvider;
+        private readonly IHttpRequestHelper _httpRequestMessageHelper;
+        private readonly IPatchWebChatHttpTriggerService _webChatPatchService;
+        private readonly IValidate _validate;
+        private readonly ILogger<PatchWebChatHttpTrigger> _logger;
         private readonly IDynamicHelper _dynamicHelper;
 
-        public PatchWebChatHttpTrigger(IResourceHelper resourceHelper,
+        public PatchWebChatHttpTrigger(ICosmosDBProvider cosmosDbProvider,
         IHttpRequestHelper httpRequestMessageHelper,
-        IHttpResponseMessageHelper httpResponseMessageHelper,
-        IJsonHelper jsonHelper,
         IValidate validate,
         IPatchWebChatHttpTriggerService webChatPatchService,
         ILogger<PatchWebChatHttpTrigger> logger,
         IDynamicHelper dynamicHelper)
         {
-            _resourceHelper = resourceHelper;
+            _cosmosDbProvider = cosmosDbProvider;
             _httpRequestMessageHelper = httpRequestMessageHelper;
-            _httpResponseMessageHelper = httpResponseMessageHelper;
             _webChatPatchService = webChatPatchService;
-            _jsonHelper = jsonHelper;
             _validate = validate;
-            log = logger;
+            _logger = logger;
             _dynamicHelper = dynamicHelper;
         }
 
@@ -60,18 +53,18 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
-                log.LogInformation("Unable to locate 'TouchpointId' in request header.");
+                _logger.LogInformation("Unable to locate 'TouchpointId' in request header.");
                 return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
             var ApimURL = _httpRequestMessageHelper.GetDssApimUrl(req);
             if (string.IsNullOrEmpty(ApimURL))
             {
-                log.LogInformation("Unable to locate 'apimurl' in request header");
+                _logger.LogInformation("Unable to locate 'apimurl' in request header");
                 return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
-            log.LogInformation("Patch Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
+            _logger.LogInformation("Patch Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
                 return new BadRequestObjectResult(customerGuid);
@@ -104,12 +97,12 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             if (errors != null && errors.Any())
                 return new UnprocessableEntityObjectResult(errors);
 
-            var doesCustomerExist = await _resourceHelper.DoesCustomerExist(customerGuid);
+            var doesCustomerExist = await _cosmosDbProvider.DoesCustomerResourceExist(customerGuid);
 
             if (!doesCustomerExist)
                 return new NoContentResult();
 
-            var isCustomerReadOnly = await _resourceHelper.IsCustomerReadOnly(customerGuid);
+            var isCustomerReadOnly = await _cosmosDbProvider.DoesCustomerHaveATerminationDate(customerGuid);
 
             if (isCustomerReadOnly)
                 return new ObjectResult(customerGuid)
@@ -117,7 +110,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
                     StatusCode = (int)HttpStatusCode.Forbidden
                 };
 
-            var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
+            var doesInteractionExist = await _cosmosDbProvider.DoesInteractionResourceExistAndBelongToCustomerAsync(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
                 return new NoContentResult();

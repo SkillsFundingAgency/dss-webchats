@@ -6,6 +6,14 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Service
 {
     public class PostWebChatHttpTriggerService : IPostWebChatHttpTriggerService
     {
+        private readonly IWebChatServiceBusClient _serviceBusClient;
+        private readonly ICosmosDBProvider _cosmosDbProvider;
+
+        public PostWebChatHttpTriggerService(ICosmosDBProvider cosmosDbProvider, IWebChatServiceBusClient serviceBusClient)
+        {
+            _cosmosDbProvider = cosmosDbProvider;
+            _serviceBusClient = serviceBusClient;   
+        }
         public async Task<Models.WebChat> CreateAsync(Models.WebChat webChat)
         {
             if (webChat == null)
@@ -13,16 +21,14 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Service
 
             webChat.SetDefaultValues();
 
-            var documentDbProvider = new DocumentDBProvider();
-
-            var response = await documentDbProvider.CreateWebChatAsync(webChat);
+            var response = await _cosmosDbProvider.CreateWebChatAsync(webChat);
 
             return response.StatusCode == HttpStatusCode.Created ? (dynamic)response.Resource : null;
         }
 
         public async Task SendToServiceBusQueueAsync(Models.WebChat webChat, string reqUrl)
         {
-            await ServiceBusClient.SendPostMessageAsync(webChat, reqUrl);
+            await _serviceBusClient.SendPostMessageAsync(webChat, reqUrl);
         }
     }
 }

@@ -1,12 +1,10 @@
 using DFC.HTTP.Standard;
-using DFC.JSON.Standard;
 using DFC.Swagger.Standard.Annotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Cosmos.Helper;
-using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
+using NCS.DSS.WebChat.Cosmos.Provider;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Text.Json;
@@ -15,26 +13,17 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
 {
     public class GetWebChatHttpTrigger
     {
-        private IResourceHelper _resourceHelper;
-        private IHttpRequestHelper _httpRequestMessageHelper;
-        private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
-        private IJsonHelper _jsonHelper;
-        private IGetWebChatHttpTriggerService _webChatGetService;
-        private ILogger log;
+        private readonly ICosmosDBProvider _cosmosDbProvider;
+        private readonly IHttpRequestHelper _httpRequestMessageHelper;
+        private readonly ILogger<GetWebChatHttpTrigger> _logger;
 
-        public GetWebChatHttpTrigger(IResourceHelper resourceHelper,
+        public GetWebChatHttpTrigger(ICosmosDBProvider cosmosDbProvider,
             IHttpRequestHelper httpRequestMessageHelper,
-            IHttpResponseMessageHelper httpResponseMessageHelper,
-            IJsonHelper jsonHelper,
-            IGetWebChatHttpTriggerService webChatGetService,
             ILogger<GetWebChatHttpTrigger> logger)
         {
-            _resourceHelper = resourceHelper;
+            _cosmosDbProvider = cosmosDbProvider;
             _httpRequestMessageHelper = httpRequestMessageHelper;
-            _httpResponseMessageHelper = httpResponseMessageHelper;
-            _webChatGetService = webChatGetService;
-            _jsonHelper = jsonHelper;
-            log = logger;
+            _logger = logger;
         }
 
         [Function("Get")]
@@ -51,11 +40,11 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
-                log.LogInformation("Unable to locate 'TouchpointId' in request header.");
+                _logger.LogInformation("Unable to locate 'TouchpointId' in request header.");
                 return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
-            log.LogInformation("Get Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
+            _logger.LogInformation("Get Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
                 return new BadRequestObjectResult(customerGuid);
@@ -63,17 +52,17 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
             if (!Guid.TryParse(interactionId, out var interactionGuid))
                 return new BadRequestObjectResult(interactionGuid);
 
-            var doesCustomerExist = await _resourceHelper.DoesCustomerExist(customerGuid);
+            var doesCustomerExist = await _cosmosDbProvider.DoesCustomerResourceExist(customerGuid);
 
             if (!doesCustomerExist)
                 return new NoContentResult();
 
-            var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
+            var doesInteractionExist = await _cosmosDbProvider.DoesInteractionResourceExistAndBelongToCustomerAsync(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
                 return new NoContentResult();
 
-            var webChats = await _webChatGetService.GetWebChatsForCustomerAsync(customerGuid, interactionGuid);
+            var webChats = await _cosmosDbProvider.GetWebChatsForCustomerAsync(customerGuid, interactionGuid);
 
             return webChats == null ?
                 new NoContentResult() :

@@ -1,12 +1,10 @@
 using DFC.HTTP.Standard;
-using DFC.JSON.Standard;
 using DFC.Swagger.Standard.Annotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Cosmos.Helper;
-using NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Service;
+using NCS.DSS.WebChat.Cosmos.Provider;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Text.Json;
@@ -15,26 +13,17 @@ namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Function
 {
     public class GetWebChatByIdHttpTrigger
     {
-        private IResourceHelper _resourceHelper;
-        private IHttpRequestHelper _httpRequestMessageHelper;
-        private IGetWebChatByIdHttpTriggerService _webChatGetService;
-        private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
-        private IJsonHelper _jsonHelper;
-        private ILogger log;
+        private readonly ICosmosDBProvider _cosmosDbProvider;
+        private readonly IHttpRequestHelper _httpRequestMessageHelper;
+        private readonly ILogger<GetWebChatByIdHttpTrigger> _logger;
 
-        public GetWebChatByIdHttpTrigger(IResourceHelper resourceHelper,
+        public GetWebChatByIdHttpTrigger(ICosmosDBProvider cosmosDbProvider,
             IHttpRequestHelper httpRequestMessageHelper,
-            IHttpResponseMessageHelper httpResponseMessageHelper,
-            IJsonHelper jsonHelper,
-            IGetWebChatByIdHttpTriggerService webChatGetService,
             ILogger<GetWebChatByIdHttpTrigger> logger)
         {
-            _resourceHelper = resourceHelper;
+            _cosmosDbProvider = cosmosDbProvider;
             _httpRequestMessageHelper = httpRequestMessageHelper;
-            _httpResponseMessageHelper = httpResponseMessageHelper;
-            _webChatGetService = webChatGetService;
-            _jsonHelper = jsonHelper;
-            log = logger;
+            _logger = logger;
         }
 
         [Function("GetById")]
@@ -50,11 +39,11 @@ namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Function
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
-                log.LogInformation("Unable to locate 'TouchpointId' in request header.");
+                _logger.LogInformation("Unable to locate 'TouchpointId' in request header.");
                 return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
-            log.LogInformation("Get Web Chat By Id C# HTTP trigger function  processed a request. By Touchpoint. " + touchpointId);
+            _logger.LogInformation("Get Web Chat By Id C# HTTP trigger function  processed a request. By Touchpoint. " + touchpointId);
 
             if (!Guid.TryParse(customerId, out var customerGuid))
                 return new BadRequestObjectResult(customerGuid);
@@ -65,17 +54,17 @@ namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Function
             if (!Guid.TryParse(webChatId, out var webChatGuid))
                 return new BadRequestObjectResult(webChatGuid);
 
-            var doesCustomerExist = await _resourceHelper.DoesCustomerExist(customerGuid);
+            var doesCustomerExist = await _cosmosDbProvider.DoesCustomerResourceExist(customerGuid);
 
             if (!doesCustomerExist)
                 return new NoContentResult();
 
-            var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
+            var doesInteractionExist = await _cosmosDbProvider.DoesInteractionResourceExistAndBelongToCustomerAsync(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
                 return new NoContentResult();
 
-            var webChat = await _webChatGetService.GetWebChatForCustomerAsync(customerGuid, interactionGuid, webChatGuid);
+            var webChat = await _cosmosDbProvider.GetWebChatForCustomerAsync(customerGuid, interactionGuid, webChatGuid);
 
             return webChat == null ?
                 new NoContentResult() :
