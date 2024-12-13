@@ -95,7 +95,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
             if (!Guid.TryParse(webChatId, out var webChatGuid))
             {
                 var response = new BadRequestObjectResult(webChatGuid);
-                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Unable to parse 'sessionId' to a Guid: {SessionId}", correlationId, response.StatusCode, sessionGuid);
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Unable to parse 'WebChatId' to a Guid: {WebChatId}", correlationId, response.StatusCode, webChatGuid);
                 return response;
             }
 
