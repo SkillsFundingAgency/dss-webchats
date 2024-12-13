@@ -55,12 +55,14 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
             _logger.LogInformation("Function {FunctionName} has been invoked", functionName);
             var correlationId = _httpRequestMessageHelper.GetDssCorrelationId(req);
             if (string.IsNullOrEmpty(correlationId))
+            { 
                 _logger.LogInformation("Unable to locate 'DssCorrelationId' in request header");
+                correlationId = Guid.NewGuid().ToString();
+            }
 
             if (!Guid.TryParse(correlationId, out var correlationGuid))
             {
                 _logger.LogInformation("Unable to parse 'DssCorrelationId' to a Guid");
-                correlationGuid = Guid.NewGuid();
             }
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
