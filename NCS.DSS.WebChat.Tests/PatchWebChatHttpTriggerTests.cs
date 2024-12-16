@@ -255,7 +255,7 @@ namespace NCS.DSS.WebChat.Tests
 
         private async Task<IActionResult> RunFunction(string customerId, string interactionId, string actionPlanId)
         {
-            return await function.Run(
+            return await function.RunAsync(
                 _request, customerId, interactionId, actionPlanId).ConfigureAwait(false);
         }
 
