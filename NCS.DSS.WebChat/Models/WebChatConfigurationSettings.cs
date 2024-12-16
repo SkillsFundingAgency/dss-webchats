@@ -2,6 +2,7 @@
 {
     public class WebChatConfigurationSettings
     {
+        public string AccessKey { get; set; }
         public string BaseAddress { get; set; }
         public string CollectionId { get; set; }
         public string CustomerCollectionId { get; set; }

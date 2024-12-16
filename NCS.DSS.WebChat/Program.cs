@@ -68,7 +68,7 @@ namespace NCS.DSS.WebChat
                     services.AddSingleton(serviceProvider =>
                     {
                         var settings = serviceProvider.GetRequiredService<IOptions<WebChatConfigurationSettings>>().Value;
-                        string connectionString = $"Endpoint={settings.Endpoint};SharedAccessKeyName={settings.KeyName};SharedAccessKey={settings.Key}";
+                        string connectionString = $"Endpoint={settings.BaseAddress};SharedAccessKeyName={settings.KeyName};SharedAccessKey={settings.AccessKey}";
                         return new ServiceBusClient(connectionString);
                     });
                 })
