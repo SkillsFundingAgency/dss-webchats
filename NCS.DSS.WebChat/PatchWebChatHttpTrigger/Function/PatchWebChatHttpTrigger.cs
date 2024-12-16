@@ -48,7 +48,7 @@ namespace NCS.DSS.WebChat.PatchWebChatHttpTrigger.Function
         [Response(HttpStatusCode = (int)HttpStatusCode.Forbidden, Description = "Insufficient access", ShowSchema = false)]
         [Response(HttpStatusCode = 422, Description = "WebChat validation error(s)", ShowSchema = false)]
         [Display(Name = "Patch", Description = "Ability to modify/update an webchat record.")]
-        public async Task<IActionResult> RunA([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")] HttpRequest req, string customerId, string interactionId, string webChatId)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")] HttpRequest req, string customerId, string interactionId, string webChatId)
         {
             var functionName = nameof(PatchWebChatHttpTrigger);
             _logger.LogInformation("Function {FunctionName} has been invoked", functionName);
