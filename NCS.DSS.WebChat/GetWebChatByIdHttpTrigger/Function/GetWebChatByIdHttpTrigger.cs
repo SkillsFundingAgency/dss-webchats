@@ -36,6 +36,21 @@ namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Function
         [Display(Name = "Get", Description = "Ability to retrieve an individual webchat record.")]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats/{webChatId}")] HttpRequest req, string customerId, string interactionId, string webChatId)
         {
+
+            var functionName = nameof(GetWebChatByIdHttpTrigger);
+
+            _logger.LogInformation("Function {FunctionName} has been invoked", functionName);
+
+            var correlationId = _httpRequestMessageHelper.GetDssCorrelationId(req);
+            if (string.IsNullOrEmpty(correlationId))
+                _logger.LogInformation("Unable to locate 'DssCorrelationId' in request header");
+
+            if (!Guid.TryParse(correlationId, out var correlationGuid))
+            {
+                _logger.LogInformation("Unable to parse 'DssCorrelationId' to a Guid");
+                correlationGuid = Guid.NewGuid();
+            }
+
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
@@ -43,35 +58,70 @@ namespace NCS.DSS.WebChat.GetWebChatByIdHttpTrigger.Function
                 return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
-            _logger.LogInformation("Get Web Chat By Id C# HTTP trigger function  processed a request. By Touchpoint. " + touchpointId);
-
             if (!Guid.TryParse(customerId, out var customerGuid))
-                return new BadRequestObjectResult(customerGuid);
+            {
+                var response = new BadRequestObjectResult(customerGuid);
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Unable to parse 'customerId' to a Guid: {customerId}", correlationId, customerId);
+                return response;
+            }
 
             if (!Guid.TryParse(interactionId, out var interactionGuid))
-                return new BadRequestObjectResult(interactionGuid);
-
+            {
+                var response = new BadRequestObjectResult(interactionGuid);
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Unable to parse 'interactionId' to a Guid: {interactionId}", correlationId, response.StatusCode, interactionId);
+                return response;
+            }
             if (!Guid.TryParse(webChatId, out var webChatGuid))
-                return new BadRequestObjectResult(webChatGuid);
+            {
+                var response = new BadRequestObjectResult(webChatGuid);
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Unable to parse 'sessionId' to a Guid: {webChatGuid}", correlationId, response.StatusCode, webChatGuid);
+                return response;
+            }
+            _logger.LogInformation("{CorrelationId} Input validation has succeeded.", correlationId);
 
+            _logger.LogInformation("{CorrelationId} Attempting to see if customer exists {customerGuid}", correlationId, customerGuid);
             var doesCustomerExist = await _cosmosDbProvider.DoesCustomerResourceExist(customerGuid);
 
             if (!doesCustomerExist)
-                return new NoContentResult();
+            {
+                var response = new NoContentResult();
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Customer does not exist {customerGuid}", correlationId, response.StatusCode, customerGuid);
+                return response;
+            }
+            _logger.LogInformation("{CorrelationId} Customer record found in Cosmos DB {customerGuid}", correlationId, customerGuid);
 
+
+            _logger.LogInformation("{CorrelationId} Attempting to see if interaction exists {interactionGuid}", correlationId, interactionGuid);
             var doesInteractionExist = await _cosmosDbProvider.DoesInteractionResourceExistAndBelongToCustomerAsync(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
-                return new NoContentResult();
+            {
+                var response = new NoContentResult();
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Interaction does not exist {interactionGuid}", correlationId, response.StatusCode, interactionGuid);
+                return response;
+            }
+             _logger.LogInformation("{CorrelationId} Interaction record with {interactionGuid} found in Cosmos DB for Customer {customerGuid}", correlationId, interactionGuid, customerGuid);
 
+
+            _logger.LogInformation("{CorrelationId} Attempting to get WebChat for customer {customerGuid}", correlationId, customerGuid);
             var webChat = await _cosmosDbProvider.GetWebChatForCustomerAsync(customerGuid, interactionGuid, webChatGuid);
 
-            return webChat == null ?
-                new NoContentResult() :
-                new JsonResult(webChat, new JsonSerializerOptions())
+            if (webChat == null)
+            {
+                var response = new NoContentResult();
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. WebChat does not exist {webChatGuid}", correlationId, response.StatusCode, webChatGuid);
+                _logger.LogInformation("Function {FunctionName} has finished invoking", functionName);
+                return response;
+            }
+            else {
+                var response = new JsonResult(webChat, new JsonSerializerOptions())
                 {
                     StatusCode = (int)HttpStatusCode.OK
                 };
+                _logger.LogInformation("{CorrelationId} Response Status Code: {StatusCode}. Get WebChat succeeded {webChatGuid}", correlationId, response.StatusCode, webChatGuid);
+                _logger.LogInformation("Function {FunctionName} has finished invoking", functionName);
+                return response;
+            }            
         }
     }
 }
