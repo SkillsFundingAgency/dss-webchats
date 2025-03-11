@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using DFC.HTTP.Standard;
 using DFC.Swagger.Standard;
@@ -57,12 +58,14 @@ namespace NCS.DSS.WebChat
                     });
                     services.AddSingleton(sp =>
                     {
-                        var settings = sp.GetRequiredService<IOptions<WebChatConfigurationSettings>>().Value;
-                        var options = new CosmosClientOptions()
+                        var cosmosDbEndpoint = configuration["CosmosDbEndpoint"];
+                        if (string.IsNullOrEmpty(cosmosDbEndpoint))
                         {
-                            ConnectionMode = ConnectionMode.Gateway
-                        };
-                        return new CosmosClient(settings.Endpoint,settings.Key, options);
+                            throw new InvalidOperationException("CosmosDbEndpoint is not configured.");
+                        }
+
+                        var options = new CosmosClientOptions() { ConnectionMode = ConnectionMode.Gateway };
+                        return new CosmosClient(cosmosDbEndpoint, new DefaultAzureCredential(), options);
                     });
                     services.AddScoped<IWebChatServiceBusClient, WebChatServiceBusClient>();
                     services.AddSingleton(serviceProvider =>

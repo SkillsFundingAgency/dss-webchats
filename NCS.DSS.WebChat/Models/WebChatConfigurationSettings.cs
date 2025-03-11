@@ -8,7 +8,7 @@
         public string CustomerCollectionId { get; set; }
         public string CustomerDatabaseId { get; set; }
         public string DatabaseId { get; set; }
-        public string Endpoint { get; set; }
+        public string CosmosDbEndpoint { get; set; }
         public string EnvironmentName { get; set; }
         public string InteractionCollectionId { get; set; }
         public string InteractionDatabaseId { get; set; }
