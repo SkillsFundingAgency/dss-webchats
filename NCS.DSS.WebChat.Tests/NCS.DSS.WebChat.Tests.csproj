@@ -4,7 +4,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="DFC.Common.Standard" Version="0.1.4" />
     <PackageReference Include="DFC.JSON.Standard" Version="0.1.4" />
     <PackageReference Include="DFC.Swagger.Standard" Version="0.1.30" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0-release-24373-02" />
