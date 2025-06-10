@@ -1,10 +1,9 @@
 ﻿using DFC.HTTP.Standard;
-using DFC.JSON.Standard;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NCS.DSS.WebChat.Cosmos.Helper;
+using NCS.DSS.WebChat.Cosmos.Provider;
 using NCS.DSS.WebChat.Helpers;
 using NCS.DSS.WebChat.PostWebChatHttpTrigger.Service;
 using NCS.DSS.WebChat.Validation;
@@ -28,12 +27,10 @@ namespace NCS.DSS.WebChat.Tests
 
         private Mock<ILogger<PostWebChatHttpTrigger.Function.PostWebChatHttpTrigger>> _log;
         private HttpRequest _request;
-        private Mock<IResourceHelper> _resourceHelper;
+        private Mock<ICosmosDBProvider> _cosmosDbProvider;
         private Mock<IHttpRequestHelper> _httpRequestMessageHelper;
         private Mock<IPostWebChatHttpTriggerService> _postWebChatHttpTriggerService;
         private PostWebChatHttpTrigger.Function.PostWebChatHttpTrigger function;
-        private IHttpResponseMessageHelper _httpResponseMessageHelper;
-        private IJsonHelper _jsonHelper;
         private Mock<IValidate> _validate;
         private Mock<IDynamicHelper> _dynamicHelper;
 
@@ -45,15 +42,13 @@ namespace NCS.DSS.WebChat.Tests
             _request = new DefaultHttpContext().Request;
 
             _log = new Mock<ILogger<PostWebChatHttpTrigger.Function.PostWebChatHttpTrigger>>();
-            _resourceHelper = new Mock<IResourceHelper>();
+            _cosmosDbProvider = new Mock<ICosmosDBProvider>();
             _postWebChatHttpTriggerService = new Mock<IPostWebChatHttpTriggerService>();
             _httpRequestMessageHelper = new Mock<IHttpRequestHelper>();
-            _httpResponseMessageHelper = new HttpResponseMessageHelper();
-            _jsonHelper = new DFC.JSON.Standard.JsonHelper();
             _dynamicHelper = new Mock<IDynamicHelper>();
 
-            function = new PostWebChatHttpTrigger.Function.PostWebChatHttpTrigger(_resourceHelper.Object,
-                _httpRequestMessageHelper.Object, _httpResponseMessageHelper, _jsonHelper, _validate.Object, _postWebChatHttpTriggerService.Object, _log.Object, _dynamicHelper.Object);
+            function = new PostWebChatHttpTrigger.Function.PostWebChatHttpTrigger(_cosmosDbProvider.Object,
+                _httpRequestMessageHelper.Object, _validate.Object, _postWebChatHttpTriggerService.Object, _log.Object, _dynamicHelper.Object);
         }
 
         [Test]
@@ -127,7 +122,7 @@ namespace NCS.DSS.WebChat.Tests
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChat>(_request)).Returns(Task.FromResult(_webChat));
-            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(false));
+            _cosmosDbProvider.Setup(x => x.DoesCustomerResourceExist(It.IsAny<Guid>())).Returns(Task.FromResult(false));
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId);
 
@@ -142,8 +137,8 @@ namespace NCS.DSS.WebChat.Tests
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChat>(_request)).Returns(Task.FromResult(_webChat));
-            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
-            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(false);
+            _cosmosDbProvider.Setup(x => x.DoesCustomerResourceExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _cosmosDbProvider.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult(false));
 
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId);
@@ -159,8 +154,8 @@ namespace NCS.DSS.WebChat.Tests
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChat>(_request)).Returns(Task.FromResult(_webChat));
-            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
-            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(true);
+            _cosmosDbProvider.Setup(x => x.DoesCustomerResourceExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _cosmosDbProvider.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult(true));
             _postWebChatHttpTriggerService.Setup(x => x.CreateAsync(It.IsAny<Models.WebChat>())).Returns(Task.FromResult<Models.WebChat>(null));
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId);
@@ -176,8 +171,8 @@ namespace NCS.DSS.WebChat.Tests
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChat>(_request)).Returns(Task.FromResult(_webChat));
-            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
-            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(true);
+            _cosmosDbProvider.Setup(x => x.DoesCustomerResourceExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _cosmosDbProvider.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult(true));
             _postWebChatHttpTriggerService.Setup(x => x.CreateAsync(It.IsAny<Models.WebChat>())).Returns(Task.FromResult<Models.WebChat>(null));
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId);
@@ -193,8 +188,8 @@ namespace NCS.DSS.WebChat.Tests
             _httpRequestMessageHelper.Setup(x => x.GetDssTouchpointId(_request)).Returns("0000000001");
             _httpRequestMessageHelper.Setup(x => x.GetDssApimUrl(_request)).Returns("http://localhost:7071/");
             _httpRequestMessageHelper.Setup(x => x.GetResourceFromRequest<Models.WebChat>(_request)).Returns(Task.FromResult(_webChat));
-            _resourceHelper.Setup(x => x.DoesCustomerExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
-            _resourceHelper.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomer(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(true);
+            _cosmosDbProvider.Setup(x => x.DoesCustomerResourceExist(It.IsAny<Guid>())).Returns(Task.FromResult(true));
+            _cosmosDbProvider.Setup(x => x.DoesInteractionResourceExistAndBelongToCustomerAsync(It.IsAny<Guid>(), It.IsAny<Guid>())).Returns(Task.FromResult(true));
             _postWebChatHttpTriggerService.Setup(x => x.CreateAsync(It.IsAny<Models.WebChat>())).Returns(Task.FromResult<Models.WebChat>(_webChat));
 
             var result = await RunFunction(ValidCustomerId, ValidInteractionId);

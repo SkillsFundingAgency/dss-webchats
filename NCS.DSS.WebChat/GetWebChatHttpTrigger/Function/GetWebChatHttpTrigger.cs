@@ -1,12 +1,11 @@
 using DFC.HTTP.Standard;
-using DFC.JSON.Standard;
 using DFC.Swagger.Standard.Annotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using NCS.DSS.WebChat.Cosmos.Helper;
-using NCS.DSS.WebChat.GetWebChatHttpTrigger.Service;
+using NCS.DSS.WebChat.Cosmos.Provider;
+using NCS.DSS.WebChat.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Text.Json;
@@ -15,26 +14,17 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
 {
     public class GetWebChatHttpTrigger
     {
-        private IResourceHelper _resourceHelper;
-        private IHttpRequestHelper _httpRequestMessageHelper;
-        private readonly IHttpResponseMessageHelper _httpResponseMessageHelper;
-        private IJsonHelper _jsonHelper;
-        private IGetWebChatHttpTriggerService _webChatGetService;
-        private ILogger log;
+        private readonly ICosmosDBProvider _cosmosDbProvider;
+        private readonly IHttpRequestHelper _httpRequestMessageHelper;
+        private readonly ILogger<GetWebChatHttpTrigger> _logger;
 
-        public GetWebChatHttpTrigger(IResourceHelper resourceHelper,
+        public GetWebChatHttpTrigger(ICosmosDBProvider cosmosDbProvider,
             IHttpRequestHelper httpRequestMessageHelper,
-            IHttpResponseMessageHelper httpResponseMessageHelper,
-            IJsonHelper jsonHelper,
-            IGetWebChatHttpTriggerService webChatGetService,
             ILogger<GetWebChatHttpTrigger> logger)
         {
-            _resourceHelper = resourceHelper;
+            _cosmosDbProvider = cosmosDbProvider;
             _httpRequestMessageHelper = httpRequestMessageHelper;
-            _httpResponseMessageHelper = httpResponseMessageHelper;
-            _webChatGetService = webChatGetService;
-            _jsonHelper = jsonHelper;
-            log = logger;
+            _logger = logger;
         }
 
         [Function("Get")]
@@ -48,36 +38,78 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Customers/{customerId}/Interactions/{interactionId}/WebChats")] HttpRequest req, string customerId, string interactionId)
 
         {
+            var functionName = nameof(GetWebChatHttpTrigger);
+
+            _logger.LogInformation("Function {FunctionName} has been invoked", functionName);
+
+            var correlationId = _httpRequestMessageHelper.GetDssCorrelationId(req);
+            if (string.IsNullOrEmpty(correlationId))
+                _logger.LogInformation("Unable to locate 'DssCorrelationId' in request header");
+
+            if (!Guid.TryParse(correlationId, out var correlationGuid))
+            {
+                _logger.LogInformation("Unable to parse 'DssCorrelationId' to a Guid");
+                correlationGuid = Guid.NewGuid();
+            }
+
             var touchpointId = _httpRequestMessageHelper.GetDssTouchpointId(req);
             if (string.IsNullOrEmpty(touchpointId))
             {
-                log.LogInformation("Unable to locate 'TouchpointId' in request header.");
+                _logger.LogInformation("Unable to locate 'TouchpointId' in request header.");
                 return new BadRequestObjectResult(HttpStatusCode.BadRequest);
             }
 
-            log.LogInformation("Get Web Chat C# HTTP trigger function processed a request. By Touchpoint. " + touchpointId);
-
             if (!Guid.TryParse(customerId, out var customerGuid))
-                return new BadRequestObjectResult(customerGuid);
+            {
+                var response = new BadRequestObjectResult(customerGuid);
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Unable to parse 'customerId' to a Guid: {customerId}", correlationId, customerId);
+                return response;
+            }
 
             if (!Guid.TryParse(interactionId, out var interactionGuid))
-                return new BadRequestObjectResult(interactionGuid);
+            {
+                var response = new BadRequestObjectResult(interactionGuid);
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Unable to parse 'interactionId' to a Guid: {interactionId}", correlationId, response.StatusCode, interactionId);
+                return response;
+            }
+            
+            _logger.LogInformation("{CorrelationId} Input validation has succeeded.", correlationId);
 
-            var doesCustomerExist = await _resourceHelper.DoesCustomerExist(customerGuid);
+            _logger.LogInformation("{CorrelationId} Attempting to see if customer exists {customerGuid}", correlationId, customerGuid);
+            var doesCustomerExist = await _cosmosDbProvider.DoesCustomerResourceExist(customerGuid);
 
             if (!doesCustomerExist)
-                return new NoContentResult();
+            {
+                var response = new NoContentResult();
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Customer does not exist {customerGuid}", correlationId, response.StatusCode, customerGuid);
+                return response;
+            }
+            _logger.LogInformation("{CorrelationId} Customer record found in Cosmos DB {customerGuid}", correlationId, customerGuid);
 
-            var doesInteractionExist = _resourceHelper.DoesInteractionResourceExistAndBelongToCustomer(interactionGuid, customerGuid);
+
+            _logger.LogInformation("{CorrelationId} Attempting to see if interaction exists {interactionGuid}", correlationId, interactionGuid);
+            var doesInteractionExist = await _cosmosDbProvider.DoesInteractionResourceExistAndBelongToCustomerAsync(interactionGuid, customerGuid);
 
             if (!doesInteractionExist)
-                return new NoContentResult();
+            {
+                var response = new NoContentResult();
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. Interaction does not exist {interactionGuid}", correlationId, response.StatusCode, interactionGuid);
+                return response;
+            }
+            _logger.LogInformation("{CorrelationId} Interaction record with {interactionGuid} found in Cosmos DB for Customer {customerGuid}", correlationId, interactionGuid, customerGuid);
 
-            var webChats = await _webChatGetService.GetWebChatsForCustomerAsync(customerGuid, interactionGuid);
-
-            return webChats == null ?
-                new NoContentResult() :
-                webChats.Count == 1 ? new JsonResult(webChats[0], new JsonSerializerOptions())
+            _logger.LogInformation("{CorrelationId} Attempting to get WebChat for customer {customerGuid}", correlationId, customerGuid);
+            var webChats = await _cosmosDbProvider.GetWebChatsForCustomerAsync(customerGuid, interactionGuid);
+            if (webChats == null)
+            {
+                var response = new NoContentResult();
+                _logger.LogWarning("{CorrelationId} Response Status Code: {StatusCode}. WebChats not found for Customer {customerGuid}", correlationId, response.StatusCode, customerGuid);
+                _logger.LogInformation("Function {FunctionName} has finished invoking", functionName);
+                return response;
+            }
+            else
+            {
+                var response = webChats.Count == 1 ? new JsonResult(webChats[0], new JsonSerializerOptions())
                 {
                     StatusCode = (int)HttpStatusCode.OK
                 } :
@@ -85,6 +117,10 @@ namespace NCS.DSS.WebChat.GetWebChatHttpTrigger.Function
                     {
                         StatusCode = (int)HttpStatusCode.OK
                     };
+                _logger.LogInformation("{CorrelationId} Response Status Code: {StatusCode}. Get WebChats succeeded for Customer {customerGuid}", correlationId, response.StatusCode, customerGuid);
+                _logger.LogInformation("Function {FunctionName} has finished invoking", functionName);
+                return response;
+            }           
         }
     }
 }
