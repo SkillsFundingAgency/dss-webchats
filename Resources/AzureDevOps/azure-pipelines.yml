@@ -28,6 +28,11 @@ jobs:
     TestBranchNameScriptFilePath: $(System.DefaultWorkingDirectory)\Test-BranchName.ps1
 
   steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET 8.x SDK'
+    inputs:
+      packageType: 'sdk'
+      version: '8.x'
   - task: PowerShell@2
     name: DownloadTestBranchNameScript
     displayName: 'Download Test-BranchName script'
