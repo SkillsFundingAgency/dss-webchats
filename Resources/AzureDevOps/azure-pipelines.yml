@@ -1,6 +1,6 @@
 variables:
     SolutionBaseName: 'NCS.DSS.WebChat'
-    BuildPlatform: 'any cpu'
+    BuildPlatform: 'anycpu'
     BuildConfiguration: 'release'
 
 resources:
