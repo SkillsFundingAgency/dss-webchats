@@ -102,7 +102,7 @@ namespace NCS.DSS.WebChat.PostWebChatHttpTrigger.Function
             }
             catch (Newtonsoft.Json.JsonException ex)
             {
-                return new UnprocessableEntityObjectResult(_dynamicHelper.ExcludeProperty(ex, ["TargetSite"]));
+                return new UnprocessableEntityObjectResult(_dynamicHelper.ExcludeProperty(ex, ["TargetSite", "StackTrace"]));
             }
 
             if (webChatRequest == null)
